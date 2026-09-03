@@ -417,8 +417,8 @@ Transform:
   m_GameObject: {fileID: 551603630}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.05, y: -4.72, z: 0}
-  m_LocalScale: {x: 2.5648, y: 0.2837, z: 1}
+  m_LocalPosition: {x: 0, y: -4.72, z: 0}
+  m_LocalScale: {x: 3.154704, y: 0.15702794, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -437,11 +437,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   leftHeld: 0
   rightHeld: 0
-  stickHalfWidth: 1.28
+  stickHalfWidth: 1.5
   riseSpeed: 3
-  fallSpeed: 2
-  maxOffset: 1.5
+  fallSpeed: 1.36
+  maxOffset: 15
   minOffset: -1.5
+  angleGain: 19.1
+  maxTiltAngle: 70
+  minY: -5
+  maxY: 20
+  ball: {fileID: 1692042478}
 --- !u!1 &619394800
 GameObject:
   m_ObjectHideFlags: 0
@@ -538,6 +543,7 @@ GameObject:
   - component: {fileID: 1692042474}
   - component: {fileID: 1692042476}
   - component: {fileID: 1692042477}
+  - component: {fileID: 1692042478}
   m_Layer: 0
   m_Name: Circle
   m_TagString: Untagged
@@ -613,8 +619,8 @@ Transform:
   m_GameObject: {fileID: 1692042473}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.01, y: -0.59, z: 0}
-  m_LocalScale: {x: 0.4, y: 0.4, z: 1}
+  m_LocalPosition: {x: -0.01, y: -4.484, z: 0}
+  m_LocalScale: {x: 0.3, y: 0.3, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -627,7 +633,7 @@ Rigidbody2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1692042473}
-  m_BodyType: 0
+  m_BodyType: 1
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
@@ -676,12 +682,29 @@ CircleCollider2D:
   m_CallbackLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
   m_Radius: 0.5
+--- !u!114 &1692042478
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1692042473}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7f3a9c1e4b2d4a5f8e0c1b3d5f7a9e02, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stick: {fileID: 551603634}
+  ballRadius: 0.2
+  rollFactor: 0.9
+  frictionHalfLife: 0.5
+  endBounce: 0.35
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
