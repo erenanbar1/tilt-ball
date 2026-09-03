@@ -16,6 +16,7 @@ public class StickController : MonoBehaviour
     public float minOffset = -1.5f;     // lowest an end can go
 
     private Rigidbody2D rb;
+    private float baseY;   // spawn height the offsets are measured from
     private float leftY;   // current offset of left end
     private float rightY;  // current offset of right end
 
@@ -23,6 +24,7 @@ public class StickController : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         rb.bodyType = RigidbodyType2D.Kinematic;
+        baseY = rb.position.y;
     }
 
     void Update()
@@ -41,11 +43,11 @@ public class StickController : MonoBehaviour
         leftY = MoveEnd(leftY, leftHeld);
         rightY = MoveEnd(rightY, rightHeld);
 
-        float centerY = (leftY + rightY) * 0.5f;
+        float centerOffset = (leftY + rightY) * 0.5f;
         float angleRad = Mathf.Atan2(rightY - leftY, stickHalfWidth * 2f);
         float angleDeg = angleRad * Mathf.Rad2Deg;
 
-        Vector2 newPos = new Vector2(rb.position.x, centerY);
+        Vector2 newPos = new Vector2(rb.position.x, baseY + centerOffset);
         rb.MovePosition(newPos);
         rb.MoveRotation(angleDeg);
     }
