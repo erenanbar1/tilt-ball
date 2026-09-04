@@ -79,3 +79,7 @@ crashlytics-build.properties
 # MCP-for-Unity debug screenshots (not real game assets)
 /[Aa]ssets/[Ss]creenshots/
 /[Aa]ssets/[Ss]creenshots.meta
+/xcode_build_v1.1
+
+# macOS Finder metadata
+.DS_Store

@@ -8,6 +8,12 @@ public class StickController : MonoBehaviour
     public bool leftHeld;
     public bool rightHeld;
 
+    // Held state coming from the on-screen controls, kept separate from the
+    // keyboard's so the two can be OR'd together in Update. Without this the
+    // keyboard read would overwrite a touch hold on the very next frame.
+    [HideInInspector] public bool touchLeftHeld;
+    [HideInInspector] public bool touchRightHeld;
+
     // Tuning mirrors the HTML prototype's stick. The speeds are matched to the
     // prototype's actual velocity relative to the bar's own length, not to the
     // time it takes to cross the board — this playfield is much taller relative
@@ -56,11 +62,11 @@ public class StickController : MonoBehaviour
 
         // Keyboard input for development (project uses the new Input System).
         var kb = Keyboard.current;
-        if (kb != null)
-        {
-            leftHeld = kb.leftArrowKey.isPressed;
-            rightHeld = kb.rightArrowKey.isPressed;
-        }
+        bool keyLeft = kb != null && kb.leftArrowKey.isPressed;
+        bool keyRight = kb != null && kb.rightArrowKey.isPressed;
+
+        leftHeld = keyLeft || touchLeftHeld;
+        rightHeld = keyRight || touchRightHeld;
     }
 
     void FixedUpdate()
@@ -110,7 +116,7 @@ public class StickController : MonoBehaviour
         return Mathf.Clamp(next, minOffset, maxOffset);
     }
 
-    // Called by the UI buttons
-    public void SetLeftHeld(bool value) => leftHeld = value;
-    public void SetRightHeld(bool value) => rightHeld = value;
+    // Called by the on-screen controls
+    public void SetLeftHeld(bool value) => touchLeftHeld = value;
+    public void SetRightHeld(bool value) => touchRightHeld = value;
 }

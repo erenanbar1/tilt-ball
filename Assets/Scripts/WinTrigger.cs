@@ -3,6 +3,9 @@ using UnityEngine;
 
 public class WinTrigger : MonoBehaviour
 {
+    // Found at runtime when left empty, so this prefab can be dropped into a new
+    // level without hand-wiring it. Only the stick is resolved this way — the rest
+    // of the references live inside the prefab.
     public StickController stick;
     public GameObject winMessage;
     public string ballTag = "Ball";
@@ -17,6 +20,11 @@ public class WinTrigger : MonoBehaviour
     public ParticleSystem winBurst; // stars that fire outward once the ball is fully swallowed
 
     private bool won;
+
+    void Awake()
+    {
+        if (stick == null) stick = FindFirstObjectByType<StickController>();
+    }
 
     void OnTriggerStay2D(Collider2D other)
     {
