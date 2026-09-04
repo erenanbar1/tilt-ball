@@ -21,9 +21,6 @@ public class StickController : MonoBehaviour
     public float minY = -4f;   // lowest the stick's center may go (world Y)
     public float maxY = 20f;    // highest the stick's center may go (world Y)
 
-    [Header("Ball")]
-    public BallOnStick ball;
-
     private Rigidbody2D rb;
     private float baseY;   // spawn height the offsets are measured from
     private float leftY;   // current offset of left end
@@ -92,11 +89,6 @@ public class StickController : MonoBehaviour
         Vector2 newPos = new Vector2(rb.position.x, clampedY);
         rb.MovePosition(newPos);
         rb.MoveRotation(angleDeg);
-
-        if (ball != null)
-        {
-            ball.FollowStick(newPos, angleDeg, stickHalfWidth);
-        }
     }
 
     float MoveEnd(float current, bool held)
