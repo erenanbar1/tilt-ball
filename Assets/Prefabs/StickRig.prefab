@@ -47,6 +47,30 @@ PrefabInstance:
       propertyPath: m_Name
       value: Stick
       objectReference: {fileID: 0}
+    - target: {fileID: 5979960906534288773, guid: 5f1f87538748f984c87927c06d49744f, type: 3}
+      propertyPath: angleGain
+      value: 7.6830916
+      objectReference: {fileID: 0}
+    - target: {fileID: 5979960906534288773, guid: 5f1f87538748f984c87927c06d49744f, type: 3}
+      propertyPath: fallSpeed
+      value: 2.9829545
+      objectReference: {fileID: 0}
+    - target: {fileID: 5979960906534288773, guid: 5f1f87538748f984c87927c06d49744f, type: 3}
+      propertyPath: maxOffset
+      value: 10.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 5979960906534288773, guid: 5f1f87538748f984c87927c06d49744f, type: 3}
+      propertyPath: minOffset
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5979960906534288773, guid: 5f1f87538748f984c87927c06d49744f, type: 3}
+      propertyPath: riseSpeed
+      value: 6.5625
+      objectReference: {fileID: 0}
+    - target: {fileID: 5979960906534288773, guid: 5f1f87538748f984c87927c06d49744f, type: 3}
+      propertyPath: maxTiltAngle
+      value: 51.6
+      objectReference: {fileID: 0}
     - target: {fileID: 6368323198433253903, guid: 5f1f87538748f984c87927c06d49744f, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0

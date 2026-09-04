@@ -8,14 +8,21 @@ public class StickController : MonoBehaviour
     public bool leftHeld;
     public bool rightHeld;
 
+    // Tuning mirrors the HTML prototype's stick, matched on the quantities that
+    // are independent of board size:
+    //   full travel rises in 0.88/0.55 = 1.60s and falls in 0.88/0.25 = 3.52s
+    //   tilting (one end held) turns at 0.8 * 1.6 rad/s = 73.34 deg/s
+    //   tilt saturates at 0.9 rad = 51.6 deg
+    // so riseSpeed = travel/1.60, fallSpeed = travel/3.52 and
+    // angleGain = 73.34 / (riseSpeed + fallSpeed).
     [Header("Tuning")]
     public float stickHalfWidth = 2f;   // distance from center to each end (X)
-    public float riseSpeed = 3f;        // units/sec when rising (pulled up fast, like a winched string)
-    public float fallSpeed = 1.36f;     // units/sec when falling (settles back down slower)
-    public float maxOffset = 1.5f;      // highest an end can go
-    public float minOffset = -1.5f;     // lowest an end can go
-    public float angleGain = 19.1f;     // degrees of tilt per world-unit of height difference between ends
-    public float maxTiltAngle = 70f;    // steepest the stick may tilt from horizontal, in degrees
+    public float riseSpeed = 6.5625f;   // units/sec when rising (10.5 units of travel in 1.60s)
+    public float fallSpeed = 2.983f;    // units/sec when falling (10.5 units of travel in 3.52s)
+    public float maxOffset = 10.5f;     // highest an end can go
+    public float minOffset = 0f;        // lowest an end can go — also the spawn height
+    public float angleGain = 7.682f;    // degrees of tilt per world-unit of height difference between ends
+    public float maxTiltAngle = 51.6f;  // steepest the stick may tilt from horizontal, in degrees
 
     [Header("Win State")]
     public bool inputEnabled = true;
@@ -29,7 +36,14 @@ public class StickController : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         rb.bodyType = RigidbodyType2D.Kinematic;
-        baseY = rb.position.y;
+
+        // Start at the bottom of the travel range, exactly where the stick was
+        // placed in the scene — like the HTML prototype, which begins each level
+        // with both ends already at their floor value. Deriving baseY from
+        // minOffset means the stick no longer sags downward on the first frame.
+        baseY = rb.position.y - minOffset;
+        leftY = minOffset;
+        rightY = minOffset;
     }
 
     void Update()
