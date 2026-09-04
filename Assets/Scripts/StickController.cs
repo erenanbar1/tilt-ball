@@ -17,10 +17,6 @@ public class StickController : MonoBehaviour
     public float angleGain = 19.1f;     // degrees of tilt per world-unit of height difference between ends
     public float maxTiltAngle = 70f;    // steepest the stick may tilt from horizontal, in degrees
 
-    [Header("Scene Bounds")]
-    public float minY = -4f;   // lowest the stick's center may go (world Y)
-    public float maxY = 20f;    // highest the stick's center may go (world Y)
-
     [Header("Win State")]
     public bool inputEnabled = true;
 
@@ -56,15 +52,6 @@ public class StickController : MonoBehaviour
         leftY = MoveEnd(leftY, leftHeld);
         rightY = MoveEnd(rightY, rightHeld);
 
-        // Neither end may go past the scene floor/ceiling — an end already resting
-        // against a bound stays pinned there (stationary) while the other end is
-        // free to keep moving, so the stick pivots around the pinned end instead of
-        // clipping through the boundary.
-        float floorOffset = minY - baseY;
-        float ceilingOffset = maxY - baseY;
-        leftY = Mathf.Clamp(leftY, floorOffset, ceilingOffset);
-        rightY = Mathf.Clamp(rightY, floorOffset, ceilingOffset);
-
         // Cap the stored height difference itself (not just the displayed angle) at what
         // maxTiltAngle allows, redistributing any excess symmetrically so the center height
         // is unaffected. Without this, leftY/rightY could keep drifting apart well past the
@@ -92,8 +79,8 @@ public class StickController : MonoBehaviour
         // all the way to vertical instead of slowing down as it approaches 90°.
         float angleDeg = diff * angleGain;
 
-        float clampedY = Mathf.Clamp(baseY + centerOffset, minY, maxY);
-        Vector2 newPos = new Vector2(rb.position.x, clampedY);
+        float newY = baseY + centerOffset;
+        Vector2 newPos = new Vector2(rb.position.x, newY);
         rb.MovePosition(newPos);
         rb.MoveRotation(angleDeg);
     }
