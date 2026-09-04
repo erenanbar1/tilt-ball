@@ -167,6 +167,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5813803298758410055}
   - component: {fileID: 3371578215852052121}
+  - component: {fileID: 7587650967535040427}
   m_Layer: 0
   m_Name: Pulley_Right
   m_TagString: Untagged
@@ -184,7 +185,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 2.4, y: 4.3, z: 0}
-  m_LocalScale: {x: 0.15, y: 0.15, z: 1}
+  m_LocalScale: {x: 0.1, y: 0.1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3675112001906865243}
@@ -249,3 +250,18 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &7587650967535040427
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7434636547187697943}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 26651d5edc7d248819bf26f56fa50765, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PulleyRotator
+  stick: {fileID: 0}
+  isLeft: 0
+  degreesPerSpeedUnit: 60
