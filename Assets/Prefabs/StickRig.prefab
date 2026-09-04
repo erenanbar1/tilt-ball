@@ -49,11 +49,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5979960906534288773, guid: 5f1f87538748f984c87927c06d49744f, type: 3}
       propertyPath: angleGain
-      value: 7.6830916
+      value: 14.121817
       objectReference: {fileID: 0}
     - target: {fileID: 5979960906534288773, guid: 5f1f87538748f984c87927c06d49744f, type: 3}
       propertyPath: fallSpeed
-      value: 2.9829545
+      value: 1.6229011
       objectReference: {fileID: 0}
     - target: {fileID: 5979960906534288773, guid: 5f1f87538748f984c87927c06d49744f, type: 3}
       propertyPath: maxOffset
@@ -65,7 +65,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5979960906534288773, guid: 5f1f87538748f984c87927c06d49744f, type: 3}
       propertyPath: riseSpeed
-      value: 6.5625
+      value: 3.5703826
       objectReference: {fileID: 0}
     - target: {fileID: 5979960906534288773, guid: 5f1f87538748f984c87927c06d49744f, type: 3}
       propertyPath: maxTiltAngle

@@ -8,20 +8,24 @@ public class StickController : MonoBehaviour
     public bool leftHeld;
     public bool rightHeld;
 
-    // Tuning mirrors the HTML prototype's stick, matched on the quantities that
-    // are independent of board size:
-    //   full travel rises in 0.88/0.55 = 1.60s and falls in 0.88/0.25 = 3.52s
-    //   tilting (one end held) turns at 0.8 * 1.6 rad/s = 73.34 deg/s
+    // Tuning mirrors the HTML prototype's stick. The speeds are matched to the
+    // prototype's actual velocity relative to the bar's own length, not to the
+    // time it takes to cross the board — this playfield is much taller relative
+    // to the bar than the prototype's, so matching the crossing time would have
+    // made the stick climb ~1.8x too fast.
+    //   HTML rise = 0.55 * (boardHeight / barLength) = 1.088 bar-lengths/sec
+    //   HTML fall = 0.25 * (boardHeight / barLength) = 0.495 bar-lengths/sec
+    //     (boardHeight/barLength = 1.982 at an iPhone portrait aspect)
+    //   tilting with both ends free turns at 0.8 * 1.6 rad/s = 73.34 deg/s,
+    //     so angleGain = 73.34 / (riseSpeed + fallSpeed)
     //   tilt saturates at 0.9 rad = 51.6 deg
-    // so riseSpeed = travel/1.60, fallSpeed = travel/3.52 and
-    // angleGain = 73.34 / (riseSpeed + fallSpeed).
     [Header("Tuning")]
     public float stickHalfWidth = 2f;   // distance from center to each end (X)
-    public float riseSpeed = 6.5625f;   // units/sec when rising (10.5 units of travel in 1.60s)
-    public float fallSpeed = 2.983f;    // units/sec when falling (10.5 units of travel in 3.52s)
+    public float riseSpeed = 3.570f;    // units/sec when rising (1.088 bar-lengths/sec on a 3.276 bar)
+    public float fallSpeed = 1.623f;    // units/sec when falling (0.495 bar-lengths/sec on a 3.276 bar)
     public float maxOffset = 10.5f;     // highest an end can go
     public float minOffset = 0f;        // lowest an end can go — also the spawn height
-    public float angleGain = 7.682f;    // degrees of tilt per world-unit of height difference between ends
+    public float angleGain = 14.122f;   // degrees of tilt per world-unit of height difference between ends
     public float maxTiltAngle = 51.6f;  // steepest the stick may tilt from horizontal, in degrees
 
     [Header("Win State")]
