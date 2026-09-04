@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 4933749402650801628}
   - component: {fileID: 3461838194043327468}
   - component: {fileID: 8376511265950807763}
+  - component: {fileID: 840621973969496385}
   m_Layer: 0
   m_Name: Ball
   m_TagString: Ball
@@ -118,7 +119,7 @@ Rigidbody2D:
     m_Bits: 0
   m_Interpolate: 0
   m_SleepingMode: 1
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
   m_Constraints: 0
 --- !u!58 &8376511265950807763
 CircleCollider2D:
@@ -156,3 +157,18 @@ CircleCollider2D:
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
   m_Radius: 4.4484
+--- !u!114 &840621973969496385
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 84984405850106625}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd49a9053f5f8442c9b0a5a7ee0bc052, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BallStickRider
+  stick: {fileID: 0}
+  stickController: {fileID: 0}
+  snapTolerance: 0.15
