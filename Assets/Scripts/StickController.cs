@@ -21,6 +21,9 @@ public class StickController : MonoBehaviour
     public float minY = -4f;   // lowest the stick's center may go (world Y)
     public float maxY = 20f;    // highest the stick's center may go (world Y)
 
+    [Header("Win State")]
+    public bool inputEnabled = true;
+
     private Rigidbody2D rb;
     private float baseY;   // spawn height the offsets are measured from
     private float leftY;   // current offset of left end
@@ -35,6 +38,8 @@ public class StickController : MonoBehaviour
 
     void Update()
     {
+        if (!inputEnabled) return;
+
         // Keyboard input for development (project uses the new Input System).
         var kb = Keyboard.current;
         if (kb != null)
@@ -46,6 +51,8 @@ public class StickController : MonoBehaviour
 
     void FixedUpdate()
     {
+        if (!inputEnabled) return;
+
         leftY = MoveEnd(leftY, leftHeld);
         rightY = MoveEnd(rightY, rightHeld);
 
