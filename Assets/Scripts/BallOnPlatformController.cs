@@ -57,21 +57,35 @@ public class BallOnPlatformController : MonoBehaviour
         endStopDistance = ballRadius * endStopFactor;
         surfaceOffset = SurfaceOffsetFromPointLine();
 
-        if (Application.isPlaying)
-        {
-            rb.bodyType = RigidbodyType2D.Kinematic;
-            rb.gravityScale = 0f;
+        calibrated = true;
+    }
 
-            // The Platform's own collider is never used for contact — this script
-            // owns that relationship entirely, so the engine can't fight it.
-            if (platform != null)
+    // Play-mode-only setup, deliberately not done in Awake: this project enables
+    // Enter Play Mode Options (domain + scene reload disabled), and an
+    // [ExecuteAlways] component is already awake from Edit mode, so Awake never
+    // runs again on entering Play mode. Doing it here — driven off the Rigidbody's
+    // own state, so it re-applies on every play session — means the Ball can't
+    // silently stay a Dynamic body, which is what let Unity's solver spin it
+    // against the end-stop colliders while it sat still in a corner.
+    void ApplyPlayModeSetup()
+    {
+        rb.bodyType = RigidbodyType2D.Kinematic;
+        rb.gravityScale = 0f;
+        rb.linearVelocity = Vector2.zero;
+        rb.angularVelocity = 0f;
+        // Keeps the Hole's trigger firing now that the body is kinematic.
+        rb.useFullKinematicContacts = true;
+
+        // The Platform's colliders are never used for contact — this script owns
+        // that relationship entirely, so the engine can't fight it. The end-stop
+        // walls are child colliders of the Platform, so they need ignoring too.
+        if (platform != null)
+        {
+            foreach (var platformCollider in platform.GetComponentsInChildren<Collider2D>())
             {
-                var platformCollider = platform.GetComponent<Collider2D>();
-                if (platformCollider != null) Physics2D.IgnoreCollision(ballCollider, platformCollider, true);
+                Physics2D.IgnoreCollision(ballCollider, platformCollider, true);
             }
         }
-
-        calibrated = true;
     }
 
     // LeftPoint/RightPoint sit slightly above the Platform's top face, so the
@@ -103,6 +117,7 @@ public class BallOnPlatformController : MonoBehaviour
     {
         if (!Application.isPlaying) return;
         if (!calibrated) Calibrate();
+        if (rb.bodyType != RigidbodyType2D.Kinematic) ApplyPlayModeSetup();
         if (!ballCollider.enabled) return; // the Hole has taken over — don't fight it
         if (leftPoint == null || rightPoint == null || platform == null) return;
 
@@ -164,7 +179,10 @@ public class BallOnPlatformController : MonoBehaviour
         if (Application.isPlaying) rb.position = ballPosition;
 
         // Visual-only roll: rotationRadians = deltaDistance / ballRadius (HTML).
-        if (Application.isPlaying)
+        // Skipped while resting against an end stop, so the bounce there can't
+        // dribble any residual spin into a Ball that isn't going anywhere.
+        bool atEndStop = clamped <= minDist || clamped >= maxDist;
+        if (Application.isPlaying && !atEndStop)
         {
             float deltaDistance = clamped - previousDistanceAlongPlatform;
             transform.Rotate(0f, 0f, -(deltaDistance / ballRadius) * Mathf.Rad2Deg);
