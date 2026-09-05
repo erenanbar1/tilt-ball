@@ -89,5 +89,6 @@ public class WinTrigger : MonoBehaviour
         if (winBurst != null) winBurst.Play();
         if (stick != null) stick.inputEnabled = false;
         if (winMessage != null) winMessage.SetActive(true);
+        LevelFlow.NotifyWin();
     }
 }
