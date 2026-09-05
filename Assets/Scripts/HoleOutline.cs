@@ -29,10 +29,25 @@ public class HoleOutline : MonoBehaviour
     private Collider2D holeCollider;
     private SpriteRenderer holeRenderer;
     private LineRenderer line;
+    private bool dirty = true;
 
-    void OnEnable() { Refresh(); }
+    void OnEnable() { dirty = true; Refresh(); }
 
-    void LateUpdate() { Refresh(); }
+    // Marks inspector edits so a running game still picks them up next frame.
+    void OnValidate() { dirty = true; }
+
+    void LateUpdate()
+    {
+        // While editing, the collider and the settings can change at any moment,
+        // so the outline is rebuilt every tick to stay live. In a running game
+        // nothing about a hole changes after it spawns, and rebuilding allocates a
+        // fresh path array every frame — enough garbage to cost frames on device —
+        // so it is skipped. The line is in local space and rides its transform, so
+        // a hole that moves still keeps its outline without any rebuild.
+        if (Application.isPlaying && !dirty) return;
+        dirty = false;
+        Refresh();
+    }
 
     void OnDisable()
     {
