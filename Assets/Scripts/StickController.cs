@@ -8,18 +8,31 @@ public class StickController : MonoBehaviour
     public bool leftHeld;
     public bool rightHeld;
 
+    // Held state coming from the on-screen controls, kept separate from the
+    // keyboard's so the two can be OR'd together in Update. Without this the
+    // keyboard read would overwrite a touch hold on the very next frame.
+    [HideInInspector] public bool touchLeftHeld;
+    [HideInInspector] public bool touchRightHeld;
+
+    // Tuning mirrors the HTML prototype's stick. The speeds are matched to the
+    // prototype's actual velocity relative to the bar's own length, not to the
+    // time it takes to cross the board — this playfield is much taller relative
+    // to the bar than the prototype's, so matching the crossing time would have
+    // made the stick climb ~1.8x too fast.
+    //   HTML rise = 0.55 * (boardHeight / barLength) = 1.088 bar-lengths/sec
+    //   HTML fall = 0.25 * (boardHeight / barLength) = 0.495 bar-lengths/sec
+    //     (boardHeight/barLength = 1.982 at an iPhone portrait aspect)
+    //   tilting with both ends free turns at 0.8 * 1.6 rad/s = 73.34 deg/s,
+    //     so angleGain = 73.34 / (riseSpeed + fallSpeed)
+    //   tilt saturates at 0.9 rad = 51.6 deg
     [Header("Tuning")]
     public float stickHalfWidth = 2f;   // distance from center to each end (X)
-    public float riseSpeed = 3f;        // units/sec when rising (pulled up fast, like a winched string)
-    public float fallSpeed = 1.36f;     // units/sec when falling (settles back down slower)
-    public float maxOffset = 1.5f;      // highest an end can go
-    public float minOffset = -1.5f;     // lowest an end can go
-    public float angleGain = 19.1f;     // degrees of tilt per world-unit of height difference between ends
-    public float maxTiltAngle = 70f;    // steepest the stick may tilt from horizontal, in degrees
-
-    [Header("Scene Bounds")]
-    public float minY = -4f;   // lowest the stick's center may go (world Y)
-    public float maxY = 20f;    // highest the stick's center may go (world Y)
+    public float riseSpeed = 3.570f;    // units/sec when rising (1.088 bar-lengths/sec on a 3.276 bar)
+    public float fallSpeed = 1.623f;    // units/sec when falling (0.495 bar-lengths/sec on a 3.276 bar)
+    public float maxOffset = 10.5f;     // highest an end can go
+    public float minOffset = 0f;        // lowest an end can go — also the spawn height
+    public float angleGain = 14.122f;   // degrees of tilt per world-unit of height difference between ends
+    public float maxTiltAngle = 51.6f;  // steepest the stick may tilt from horizontal, in degrees
 
     [Header("Win State")]
     public bool inputEnabled = true;
@@ -33,7 +46,14 @@ public class StickController : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         rb.bodyType = RigidbodyType2D.Kinematic;
-        baseY = rb.position.y;
+
+        // Start at the bottom of the travel range, exactly where the stick was
+        // placed in the scene — like the HTML prototype, which begins each level
+        // with both ends already at their floor value. Deriving baseY from
+        // minOffset means the stick no longer sags downward on the first frame.
+        baseY = rb.position.y - minOffset;
+        leftY = minOffset;
+        rightY = minOffset;
     }
 
     void Update()
@@ -42,11 +62,11 @@ public class StickController : MonoBehaviour
 
         // Keyboard input for development (project uses the new Input System).
         var kb = Keyboard.current;
-        if (kb != null)
-        {
-            leftHeld = kb.leftArrowKey.isPressed;
-            rightHeld = kb.rightArrowKey.isPressed;
-        }
+        bool keyLeft = kb != null && kb.leftArrowKey.isPressed;
+        bool keyRight = kb != null && kb.rightArrowKey.isPressed;
+
+        leftHeld = keyLeft || touchLeftHeld;
+        rightHeld = keyRight || touchRightHeld;
     }
 
     void FixedUpdate()
@@ -55,15 +75,6 @@ public class StickController : MonoBehaviour
 
         leftY = MoveEnd(leftY, leftHeld);
         rightY = MoveEnd(rightY, rightHeld);
-
-        // Neither end may go past the scene floor/ceiling — an end already resting
-        // against a bound stays pinned there (stationary) while the other end is
-        // free to keep moving, so the stick pivots around the pinned end instead of
-        // clipping through the boundary.
-        float floorOffset = minY - baseY;
-        float ceilingOffset = maxY - baseY;
-        leftY = Mathf.Clamp(leftY, floorOffset, ceilingOffset);
-        rightY = Mathf.Clamp(rightY, floorOffset, ceilingOffset);
 
         // Cap the stored height difference itself (not just the displayed angle) at what
         // maxTiltAngle allows, redistributing any excess symmetrically so the center height
@@ -92,8 +103,8 @@ public class StickController : MonoBehaviour
         // all the way to vertical instead of slowing down as it approaches 90°.
         float angleDeg = diff * angleGain;
 
-        float clampedY = Mathf.Clamp(baseY + centerOffset, minY, maxY);
-        Vector2 newPos = new Vector2(rb.position.x, clampedY);
+        float newY = baseY + centerOffset;
+        Vector2 newPos = new Vector2(rb.position.x, newY);
         rb.MovePosition(newPos);
         rb.MoveRotation(angleDeg);
     }
@@ -105,7 +116,7 @@ public class StickController : MonoBehaviour
         return Mathf.Clamp(next, minOffset, maxOffset);
     }
 
-    // Called by the UI buttons
-    public void SetLeftHeld(bool value) => leftHeld = value;
-    public void SetRightHeld(bool value) => rightHeld = value;
+    // Called by the on-screen controls
+    public void SetLeftHeld(bool value) => touchLeftHeld = value;
+    public void SetRightHeld(bool value) => touchRightHeld = value;
 }
