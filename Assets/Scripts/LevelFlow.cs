@@ -1,6 +1,7 @@
 using PrimeTween;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 // Owns what the player sees once a run ends and where the buttons on it lead.
 // WinTrigger and LoseTrigger only report the outcome; a level needs nothing wired
@@ -24,11 +25,20 @@ public class LevelFlow : MonoBehaviour
     // The backdrop fades rather than snapping on, so the end of a run doesn't
     // feel like a frame dropped.
     public float backdropFadeDuration = 0.22f;
-    // Each element on the panel pops in on a slight overshoot, one after the
-    // other, so the eye reads the wording before the button under it.
-    public float contentPopDuration = 0.34f;
-    public float contentStagger = 0.07f;
-    public float contentStartScale = 0.85f;
+
+    [Header("Title — drops in from above")]
+    public float titleDropDistance = 520f;
+    public float titleDropDuration = 0.55f;
+    // A few degrees of tilt on the way in, unwound by the same overshoot, so the
+    // lettering lands with a bit of swagger instead of sliding down flat.
+    public float titleTiltDegrees = 7f;
+
+    [Header("Button — pops in, then breathes")]
+    public float buttonDelay = 0.26f;
+    public float buttonPopDuration = 0.42f;
+    // A slow idle pulse afterwards, so the button keeps asking to be pressed.
+    public float buttonPulseScale = 1.05f;
+    public float buttonPulseDuration = 0.9f;
 
     void Awake()
     {
@@ -66,14 +76,38 @@ public class LevelFlow : MonoBehaviour
             Tween.Alpha(group, 0f, 1f, backdropFadeDuration, Ease.OutQuad);
         }
 
-        int index = 0;
-        foreach (Transform child in panel.transform)
-        {
-            child.localScale = Vector3.one * contentStartScale;
-            Tween.Scale(child, contentStartScale, 1f, contentPopDuration, Ease.OutBack,
-                startDelay: index * contentStagger);
-            index++;
-        }
+        AnimateTitle(panel.transform.Find("Title") as RectTransform);
+        AnimateButton(panel.GetComponentInChildren<Button>(true));
+    }
+
+    // Falls in from off the top and overshoots into place, unwinding a slight
+    // tilt as it lands.
+    void AnimateTitle(RectTransform title)
+    {
+        if (title == null) return;
+
+        Vector2 resting = title.anchoredPosition;
+        title.anchoredPosition = resting + new Vector2(0f, titleDropDistance);
+        title.localEulerAngles = new Vector3(0f, 0f, titleTiltDegrees);
+
+        Tween.UIAnchoredPosition(title, resting, titleDropDuration, Ease.OutBack);
+        Tween.LocalEulerAngles(title, new Vector3(0f, 0f, titleTiltDegrees), Vector3.zero,
+            titleDropDuration, Ease.OutBack);
+    }
+
+    // Pops in a beat after the title, then keeps breathing so it reads as the
+    // thing to press.
+    void AnimateButton(Button button)
+    {
+        if (button == null) return;
+
+        Transform t = button.transform;
+        t.localScale = Vector3.zero;
+
+        Tween.Scale(t, 0f, 1f, buttonPopDuration, Ease.OutBack, startDelay: buttonDelay)
+            .OnComplete(t, target =>
+                Tween.Scale(target, 1f, buttonPulseScale, buttonPulseDuration, Ease.InOutSine,
+                    cycles: -1, cycleMode: CycleMode.Yoyo));
     }
 
     // Hooked to the Continue button on the win screen.

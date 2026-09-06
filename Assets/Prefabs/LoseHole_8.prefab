@@ -277,7 +277,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.030416409, y: 0.030416409, z: 1}
+  m_LocalScale: {x: 0.03394985, y: 0.03394985, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 2911091733879054932}
@@ -514,6 +514,8 @@ MonoBehaviour:
   containmentFraction: 1
   containmentSamples: 12
   fallDuration: 0.35
+  spinDegrees: 260
+  shrinkDelayFraction: 0.3
   loseBurst: {fileID: 0}
 --- !u!114 &484138012898521832
 MonoBehaviour:
