@@ -1,4 +1,4 @@
-using System.Collections;
+using PrimeTween;
 using UnityEngine;
 
 // The losing counterpart of WinTrigger: same fall-in animation, but the Ball has
@@ -31,6 +31,11 @@ public class LoseTrigger : MonoBehaviour
 
     [Header("Fall-in animation")]
     public float fallDuration = 0.35f;
+    // Steeper than the winning hole's fall, so dropping into one of these reads
+    // as losing the ball rather than as being collected.
+    public float spinDegrees = 260f;
+    [Range(0f, 0.9f)]
+    public float shrinkDelayFraction = 0.3f;
     public ParticleSystem loseBurst;
 
     private bool lost;
@@ -48,7 +53,7 @@ public class LoseTrigger : MonoBehaviour
         if (!IsSufficientlyContained(other)) return;
 
         lost = true;
-        StartCoroutine(FallIntoHole(other));
+        FallIntoHole(other);
     }
 
     // In once every point on a circle of `margin` around the Ball's centre lies
@@ -79,7 +84,7 @@ public class LoseTrigger : MonoBehaviour
     // Pulls the ball to the hole's centre while shrinking it to nothing, so it
     // visibly disappears into the hole — only once that finishes is the loss
     // actually declared. Mirrors WinTrigger.FallIntoHole.
-    IEnumerator FallIntoHole(Collider2D ballCollider)
+    void FallIntoHole(Collider2D ballCollider)
     {
         Rigidbody2D rb = ballCollider.attachedRigidbody;
         Transform ballTransform = ballCollider.transform;
@@ -94,26 +99,25 @@ public class LoseTrigger : MonoBehaviour
         // driving it as soon as its collider goes off.
         ballCollider.enabled = false;
 
-        Vector3 startPos = ballTransform.position;
         Vector3 startScale = ballTransform.localScale;
+        Vector3 startAngles = ballTransform.localEulerAngles;
         // The blob is not always centred on its pivot, so aim at the shape itself.
         Vector3 targetPos = holeCollider.bounds.center;
-        targetPos.z = startPos.z;
+        targetPos.z = ballTransform.position.z;
 
-        float t = 0f;
-        while (t < fallDuration)
-        {
-            t += Time.deltaTime;
-            float p = Mathf.Clamp01(t / fallDuration);
-            float eased = p * p; // accelerate inward, like being sucked in
+        // Same three beats as the winning hole, on a sharper curve: the drop
+        // accelerates harder and the ball keeps turning until it is gone.
+        Sequence.Create(Tween.Position(ballTransform, targetPos, fallDuration, Ease.InCubic))
+            .Group(Tween.LocalEulerAngles(ballTransform, startAngles,
+                startAngles + new Vector3(0f, 0f, -spinDegrees), fallDuration, Ease.InCubic))
+            .Group(Tween.Scale(ballTransform, startScale, Vector3.zero,
+                fallDuration * (1f - shrinkDelayFraction), Ease.InQuad,
+                startDelay: fallDuration * shrinkDelayFraction))
+            .ChainCallback(() => Finish(ballTransform));
+    }
 
-            ballTransform.position = Vector3.Lerp(startPos, targetPos, eased);
-            ballTransform.localScale = Vector3.Lerp(startScale, Vector3.zero, eased);
-            yield return null;
-        }
-
-        ballTransform.position = targetPos;
-        ballTransform.localScale = Vector3.zero;
+    void Finish(Transform ballTransform)
+    {
         ballTransform.gameObject.SetActive(false);
 
         if (loseBurst != null) loseBurst.Play();

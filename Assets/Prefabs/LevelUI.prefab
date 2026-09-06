@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 9177130118570445536}
   - component: {fileID: 6649952575399065902}
   - component: {fileID: 5159542816035425219}
+  - component: {fileID: 2030250386598021266}
   m_Layer: 0
   m_Name: LosePanel
   m_TagString: Untagged
@@ -77,6 +78,18 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!225 &2030250386598021266
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 884635601099018301}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &4089482790885431030
 GameObject:
   m_ObjectHideFlags: 0
@@ -355,6 +368,10 @@ MonoBehaviour:
   winPanel: {fileID: 8942148469790220502}
   losePanel: {fileID: 884635601099018301}
   loopAfterLastLevel: 1
+  backdropFadeDuration: 0.22
+  contentPopDuration: 0.34
+  contentStagger: 0.07
+  contentStartScale: 0.85
 --- !u!1 &6140800763239041267
 GameObject:
   m_ObjectHideFlags: 0
@@ -869,6 +886,7 @@ GameObject:
   - component: {fileID: 3161734758164113619}
   - component: {fileID: 8495566140102766238}
   - component: {fileID: 3751454942924294150}
+  - component: {fileID: 825443253621473593}
   m_Layer: 0
   m_Name: WinPanel
   m_TagString: Untagged
@@ -935,3 +953,15 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!225 &825443253621473593
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8942148469790220502}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0

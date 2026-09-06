@@ -15,6 +15,16 @@ public class PulleyRotator : MonoBehaviour
         if (stick == null) return;
 
         bool held = isLeft ? stick.leftHeld : stick.rightHeld;
+
+        // held only says which way the end is being told to go — StickController
+        // clamps the actual height at minOffset/maxOffset, so "falling" while
+        // already on the floor (true at rest, e.g. right after the level loads)
+        // is no real motion at all. Skipping rotation there is what stops the
+        // pulley from spinning on a stick end that visibly isn't moving.
+        float height = stick.GetEndOffset(isLeft);
+        bool blocked = held ? height >= stick.maxOffset : height <= stick.minOffset;
+        if (blocked) return;
+
         float speed = held ? stick.riseSpeed : -stick.fallSpeed;
 
         // Mirrored pulleys spin opposite ways for the same rope motion — realistic for a mirrored pair.

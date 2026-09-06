@@ -1,4 +1,4 @@
-using System.Collections;
+using PrimeTween;
 using UnityEngine;
 
 public class WinTrigger : MonoBehaviour
@@ -17,6 +17,13 @@ public class WinTrigger : MonoBehaviour
 
     [Header("Fall-in animation")]
     public float fallDuration = 0.35f;
+    // How far the ball turns on its way down. It is already rolling when it
+    // arrives, so carrying that spin into the hole reads better than freezing it.
+    public float spinDegrees = 220f;
+    // The ball only starts vanishing once it is over the mouth of the hole —
+    // shrinking from the first frame looks like it evaporates in mid-air.
+    [Range(0f, 0.9f)]
+    public float shrinkDelayFraction = 0.3f;
     public ParticleSystem winBurst; // stars that fire outward once the ball is fully swallowed
 
     private bool won;
@@ -32,7 +39,7 @@ public class WinTrigger : MonoBehaviour
         if (!IsSufficientlyContained(other)) return;
 
         won = true;
-        StartCoroutine(FallIntoHole(other));
+        FallIntoHole(other);
     }
 
     // True once enough of the ball's circular body has crossed into the black
@@ -53,7 +60,7 @@ public class WinTrigger : MonoBehaviour
     // Pulls the ball to the hole's center while shrinking it to nothing, so it
     // visibly disappears into the black fill — only once that finishes is the
     // win actually declared.
-    IEnumerator FallIntoHole(Collider2D ballCollider)
+    void FallIntoHole(Collider2D ballCollider)
     {
         Rigidbody2D rb = ballCollider.attachedRigidbody;
         Transform ballTransform = ballCollider.transform;
@@ -64,26 +71,29 @@ public class WinTrigger : MonoBehaviour
             rb.angularVelocity = 0f;
             rb.bodyType = RigidbodyType2D.Kinematic;
         }
+        // Also hands the Ball over from BallOnPlatformController, which stops
+        // driving it as soon as its collider goes off.
         ballCollider.enabled = false;
 
-        Vector3 startPos = ballTransform.position;
         Vector3 startScale = ballTransform.localScale;
+        Vector3 startAngles = ballTransform.localEulerAngles;
         Vector3 targetPos = transform.position;
+        targetPos.z = ballTransform.position.z;
 
-        float t = 0f;
-        while (t < fallDuration)
-        {
-            t += Time.deltaTime;
-            float p = Mathf.Clamp01(t / fallDuration);
-            float eased = p * p; // accelerate inward, like being sucked in
+        // Three beats over the same window: the hole draws the ball in with an
+        // accelerating fall, the ball keeps turning on the way down, and the
+        // shrink holds off until it is actually over the mouth.
+        Sequence.Create(Tween.Position(ballTransform, targetPos, fallDuration, Ease.InQuad))
+            .Group(Tween.LocalEulerAngles(ballTransform, startAngles,
+                startAngles + new Vector3(0f, 0f, -spinDegrees), fallDuration, Ease.InQuad))
+            .Group(Tween.Scale(ballTransform, startScale, Vector3.zero,
+                fallDuration * (1f - shrinkDelayFraction), Ease.InQuad,
+                startDelay: fallDuration * shrinkDelayFraction))
+            .ChainCallback(() => Finish(ballTransform));
+    }
 
-            ballTransform.position = Vector3.Lerp(startPos, targetPos, eased);
-            ballTransform.localScale = Vector3.Lerp(startScale, Vector3.zero, eased);
-            yield return null;
-        }
-
-        ballTransform.position = targetPos;
-        ballTransform.localScale = Vector3.zero;
+    void Finish(Transform ballTransform)
+    {
         ballTransform.gameObject.SetActive(false);
 
         if (winBurst != null) winBurst.Play();
