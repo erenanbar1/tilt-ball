@@ -119,4 +119,8 @@ public class StickController : MonoBehaviour
     // Called by the on-screen controls
     public void SetLeftHeld(bool value) => touchLeftHeld = value;
     public void SetRightHeld(bool value) => touchRightHeld = value;
+
+    // Read-only so PulleyRotator can tell whether its side is actually free to
+    // move right now, rather than just whether it's being held.
+    public float GetEndOffset(bool isLeft) => isLeft ? leftY : rightY;
 }
