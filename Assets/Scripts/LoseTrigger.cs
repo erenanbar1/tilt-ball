@@ -16,6 +16,7 @@ public class LoseTrigger : MonoBehaviour
     // Found at runtime when left empty, so this prefab can be dropped into a new
     // level without hand-wiring it.
     public StickController stick;
+    public GameManager gameManager;
     public GameObject loseMessage;
     public string ballTag = "Ball";
 
@@ -44,6 +45,7 @@ public class LoseTrigger : MonoBehaviour
     void Awake()
     {
         if (stick == null) stick = FindFirstObjectByType<StickController>();
+        if (gameManager == null) gameManager = FindFirstObjectByType<GameManager>();
         holeCollider = GetComponent<Collider2D>();
     }
 
@@ -123,6 +125,6 @@ public class LoseTrigger : MonoBehaviour
         if (loseBurst != null) loseBurst.Play();
         if (stick != null) stick.inputEnabled = false;
         if (loseMessage != null) loseMessage.SetActive(true);
-        LevelFlow.NotifyLose();
+        if (gameManager != null) gameManager.SetState(GameState.Lose);
     }
 }

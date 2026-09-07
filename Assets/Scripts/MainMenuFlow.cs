@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 public class MainMenuFlow : MonoBehaviour
 {
-    public string firstLevelSceneName = "Level_1";
+    public string firstLevelSceneName = "Level";
     public Button playButton;
 
     void Awake()

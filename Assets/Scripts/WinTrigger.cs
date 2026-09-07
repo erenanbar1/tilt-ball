@@ -4,9 +4,10 @@ using UnityEngine;
 public class WinTrigger : MonoBehaviour
 {
     // Found at runtime when left empty, so this prefab can be dropped into a new
-    // level without hand-wiring it. Only the stick is resolved this way — the rest
-    // of the references live inside the prefab.
+    // level without hand-wiring it. Only the stick and GameManager are resolved
+    // this way — the rest of the references live inside the prefab.
     public StickController stick;
+    public GameManager gameManager;
     public GameObject winMessage;
     public string ballTag = "Ball";
 
@@ -31,6 +32,7 @@ public class WinTrigger : MonoBehaviour
     void Awake()
     {
         if (stick == null) stick = FindFirstObjectByType<StickController>();
+        if (gameManager == null) gameManager = FindFirstObjectByType<GameManager>();
     }
 
     void OnTriggerStay2D(Collider2D other)
@@ -99,6 +101,6 @@ public class WinTrigger : MonoBehaviour
         if (winBurst != null) winBurst.Play();
         if (stick != null) stick.inputEnabled = false;
         if (winMessage != null) winMessage.SetActive(true);
-        LevelFlow.NotifyWin();
+        if (gameManager != null) gameManager.SetState(GameState.Win);
     }
 }

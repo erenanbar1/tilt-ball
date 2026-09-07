@@ -151,7 +151,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9c87fdc579ba54236b8ca7722e4453e1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MainMenuFlow
-  firstLevelSceneName: Level_1
+  firstLevelSceneName: Level
   playButton: {fileID: 479469821}
 --- !u!114 &19949041
 MonoBehaviour:

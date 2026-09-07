@@ -1,17 +1,21 @@
 using PrimeTween;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 // Owns what the player sees once a run ends and where the buttons on it lead.
-// WinTrigger and LoseTrigger only report the outcome; a level needs nothing wired
-// to them, because the panels and the scene changes all live here.
+// WinTrigger and LoseTrigger report the outcome to GameManager; this only
+// listens for the resulting state change, so it never touches obstacle or
+// level content directly.
 //
-// Levels advance by build order: Continue loads the next scene in Build Settings,
-// Replay reloads the current one. Dropping a new level into Build Settings is
-// therefore the only step needed to add it to the run.
+// Levels advance through LevelLoader, which owns which LevelConfig is next.
+// Dropping a new LevelConfig into LevelLoader's allLevelsInOrder is therefore
+// the only step needed to add it to the run.
 public class LevelFlow : MonoBehaviour
 {
+    [Header("Game state — found at runtime when left empty")]
+    public GameManager gameManager;
+    public LevelLoader levelLoader;
+
     [Header("Screens — hidden until the run ends")]
     public GameObject winPanel;
     public GameObject losePanel;
@@ -42,24 +46,28 @@ public class LevelFlow : MonoBehaviour
 
     void Awake()
     {
+        if (gameManager == null) gameManager = FindFirstObjectByType<GameManager>();
+        if (levelLoader == null) levelLoader = FindFirstObjectByType<LevelLoader>();
+
         // Whatever state they were left in while editing, a run always starts clean.
         if (winPanel != null) winPanel.SetActive(false);
         if (losePanel != null) losePanel.SetActive(false);
     }
 
-    // Looked up rather than cached in a static: this project runs with domain
-    // reload disabled, where a stale static survives between play sessions. This
-    // only ever runs once, at the end of a level.
-    public static void NotifyWin()
+    void OnEnable()
     {
-        var flow = FindFirstObjectByType<LevelFlow>();
-        if (flow != null) flow.ShowPanel(flow.winPanel);
+        if (gameManager != null) gameManager.OnStateChanged += HandleStateChanged;
     }
 
-    public static void NotifyLose()
+    void OnDisable()
     {
-        var flow = FindFirstObjectByType<LevelFlow>();
-        if (flow != null) flow.ShowPanel(flow.losePanel);
+        if (gameManager != null) gameManager.OnStateChanged -= HandleStateChanged;
+    }
+
+    void HandleStateChanged(GameState state)
+    {
+        if (state == GameState.Win) ShowPanel(winPanel);
+        else if (state == GameState.Lose) ShowPanel(losePanel);
     }
 
     void ShowPanel(GameObject panel)
@@ -113,28 +121,12 @@ public class LevelFlow : MonoBehaviour
     // Hooked to the Continue button on the win screen.
     public void Continue()
     {
-        int next = SceneManager.GetActiveScene().buildIndex + 1;
-        if (next >= SceneManager.sceneCountInBuildSettings)
-        {
-            if (!loopAfterLastLevel) { Replay(); return; }
-            next = 0;
-        }
-        SceneManager.LoadScene(next);
+        if (levelLoader != null) levelLoader.LoadNext(loopAfterLastLevel);
     }
 
     // Hooked to the Replay button on the lose screen.
     public void Replay()
     {
-        var scene = SceneManager.GetActiveScene();
-        if (scene.buildIndex >= 0)
-        {
-            SceneManager.LoadScene(scene.buildIndex);
-            return;
-        }
-
-        // A scene played straight out of the editor without being in Build
-        // Settings has no build index, and reloading it is simply not possible —
-        // say so plainly rather than letting LoadScene(-1) throw.
-        Debug.LogWarning("Replay needs '" + scene.name + "' to be listed and ticked in Build Settings.", this);
+        if (levelLoader != null) levelLoader.Reload();
     }
 }

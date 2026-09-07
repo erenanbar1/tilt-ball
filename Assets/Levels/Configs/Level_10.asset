@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 619757e00b9d242488196de7cb6db28e, type: 3}
+  m_Name: Level_10
+  m_EditorClassIdentifier: Assembly-CSharp::LevelConfig
+  levelId: Level_10
+  levelIndex: 9
+  obstaclesPrefab: {fileID: 2098734103079076872, guid: dbc3aa5a0c0413347af8c27901073415, type: 3}
+  ballStartPosition: {x: 0, y: 0, z: 0}
+  winningHolePosition: {x: 0, y: 0, z: 0}
+  timeLimit: 0

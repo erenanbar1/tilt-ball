@@ -9,38 +9,8 @@ EditorBuildSettings:
     path: Assets/Scenes/MainMenu.unity
     guid: 22b82195b64f34ddebe3e6d82ad711d7
   - enabled: 1
-    path: Assets/Scenes/Level_1.unity
+    path: Assets/Scenes/Level.unity
     guid: 928cf3ffe47cb487a9e8e7fb0e334da1
-  - enabled: 1
-    path: Assets/Scenes/Level_2.unity
-    guid: 8d0cb33c7536f44e0b9a1d93dc487e06
-  - enabled: 1
-    path: Assets/Scenes/Level_3.unity
-    guid: 102aaa6bfb803415fa59b03aedca148f
-  - enabled: 1
-    path: Assets/Scenes/Level_4.unity
-    guid: 01851972b60314dc1a46694b4fa71e68
-  - enabled: 1
-    path: Assets/Scenes/Level_5.unity
-    guid: c17e39ef9dbe844c588d1cf2f7075817
-  - enabled: 1
-    path: Assets/Scenes/Level_6.unity
-    guid: fa235a9ba2e33426e912e61083032ee9
-  - enabled: 1
-    path: Assets/Scenes/Level_7.unity
-    guid: 4083a0ff95d514932b96840bc26e0d6e
-  - enabled: 1
-    path: Assets/Scenes/Level_8.unity
-    guid: cbb637969987d4b8c8e3dea5fde4ccea
-  - enabled: 1
-    path: Assets/Scenes/Level_9.unity
-    guid: 67f18ea90f223424794ff830743784e0
-  - enabled: 1
-    path: Assets/Scenes/Level_10.unity
-    guid: 65ad38b185f2f4e1e8512f9bcbb62e9c
-  - enabled: 0
-    path: Assets/Scenes/Bora-TestScene.unity
-    guid: fb6f60eb356cc4456976983c7b26bdf1
   m_configObjects:
     com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
