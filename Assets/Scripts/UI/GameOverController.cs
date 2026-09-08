@@ -13,6 +13,8 @@ public class GameOverController : MonoBehaviour
 
     void Start()
     {
+        if (AudioManager.Instance != null) AudioManager.Instance.PlayLoseScreen();
+
         if (backdrop != null)
         {
             backdrop.alpha = 0f;

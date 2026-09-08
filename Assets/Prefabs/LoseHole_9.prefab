@@ -513,6 +513,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LoseTrigger
   stick: {fileID: 0}
+  gameManager: {fileID: 0}
   loseMessage: {fileID: 0}
   ballTag: Ball
   containmentFraction: 1
@@ -521,6 +522,7 @@ MonoBehaviour:
   spinDegrees: 260
   shrinkDelayFraction: 0.3
   loseBurst: {fileID: 0}
+  screenDelay: 0.8
 --- !u!114 &7917272075984482032
 MonoBehaviour:
   m_ObjectHideFlags: 0

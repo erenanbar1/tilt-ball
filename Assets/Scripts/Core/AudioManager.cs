@@ -1,8 +1,15 @@
+using PrimeTween;
 using UnityEngine;
 
 // Lives in Bootstrap, persists for the whole session so music doesn't restart
 // or cut out across scene swaps. Two sources: one looping for music, one
 // one-shot for SFX so a sound effect never interrupts the music track.
+//
+// The theme ducks for the whole of a win/lose outcome: down when the ball drops
+// into a hole, still down under the result screen's own sound, and back up when
+// the run returns to Playing — which is what Retry and Next Level both do. The
+// way back up is a state subscription rather than a call from those buttons, so
+// no future exit from a result screen can forget to undo the duck.
 [RequireComponent(typeof(AudioSource))]
 public class AudioManager : MonoBehaviour
 {
@@ -10,6 +17,25 @@ public class AudioManager : MonoBehaviour
 
     public AudioSource musicSource;
     public AudioSource sfxSource;
+
+    [Header("Clips")]
+    public AudioClip mainTheme;
+    public AudioClip winHole;    // the ball dropping into the winning hole
+    public AudioClip winScreen;  // the win screen opening
+    public AudioClip loseHole;   // the ball dropping into a losing hole
+    public AudioClip loseScreen; // the "you have failed" screen opening
+
+    [Header("Music levels")]
+    [Range(0f, 1f)]
+    public float musicVolume = 1f;
+    // Where the theme sits while a win/lose outcome plays out, so those sounds
+    // land on top of it instead of fighting it.
+    [Range(0f, 1f)]
+    public float duckedVolume = 0.1f;
+    public float duckDuration = 0.2f;
+    public float restoreDuration = 0.35f;
+
+    Tween musicFade;
 
     void Awake()
     {
@@ -26,6 +52,30 @@ public class AudioManager : MonoBehaviour
         musicSource.playOnAwake = false;
         sfxSource.loop = false;
         sfxSource.playOnAwake = false;
+    }
+
+    // Start, not Awake, so GameManager.Instance is set no matter which order the
+    // two woke up in — same reasoning as SceneLoader's subscription.
+    void Start()
+    {
+        if (GameManager.Instance != null) GameManager.Instance.OnStateChanged += HandleStateChanged;
+
+        musicSource.volume = musicVolume;
+        PlayMusic(mainTheme);
+    }
+
+    void OnDestroy()
+    {
+        if (GameManager.Instance != null) GameManager.Instance.OnStateChanged -= HandleStateChanged;
+    }
+
+    void HandleStateChanged(GameState state)
+    {
+        // Ducking starts earlier than this, with the hole sound itself — by the
+        // time a win/lose state lands the ball has already fallen in. All that's
+        // left here is bringing the theme back once the player moves on, which
+        // Retry and Next Level both do before loading the next scene.
+        if (state == GameState.Playing) RestoreMusic();
     }
 
     public void PlayMusic(AudioClip clip, bool loop = true)
@@ -47,5 +97,34 @@ public class AudioManager : MonoBehaviour
     {
         if (clip == null || sfxSource == null) return;
         sfxSource.PlayOneShot(clip);
+    }
+
+    // The four outcome sounds are addressed by name rather than by clip: the
+    // triggers and result screens that fire them live in scenes of their own, so
+    // they can't hold an inspector reference to a clip wired up on Bootstrap.
+    //
+    // The two hole sounds open the outcome, so they take the theme down with
+    // them; the screen sounds land while it's already down.
+    public void PlayWinHole() => PlayDucked(winHole);
+    public void PlayLoseHole() => PlayDucked(loseHole);
+    public void PlayWinScreen() => PlaySFX(winScreen);
+    public void PlayLoseScreen() => PlaySFX(loseScreen);
+
+    void PlayDucked(AudioClip clip)
+    {
+        PlaySFX(clip);
+        FadeMusicTo(duckedVolume, duckDuration);
+    }
+
+    public void RestoreMusic() => FadeMusicTo(musicVolume, restoreDuration);
+
+    void FadeMusicTo(float volume, float duration)
+    {
+        if (musicSource == null) return;
+
+        musicFade.Stop();
+        // Unscaled: the pause menu freezes time, and a fade that stalls
+        // half-way down would leave the theme stuck at the wrong level.
+        musicFade = Tween.AudioVolume(musicSource, volume, duration, Ease.Linear, useUnscaledTime: true);
     }
 }

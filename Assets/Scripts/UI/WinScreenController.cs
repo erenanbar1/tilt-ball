@@ -13,6 +13,8 @@ public class WinScreenController : MonoBehaviour
 
     void Start()
     {
+        if (AudioManager.Instance != null) AudioManager.Instance.PlayWinScreen();
+
         if (backdrop != null)
         {
             backdrop.alpha = 0f;

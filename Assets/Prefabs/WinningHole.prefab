@@ -235,12 +235,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   stick: {fileID: 0}
+  gameManager: {fileID: 0}
   winMessage: {fileID: 0}
   ballTag: Ball
   holeFill: {fileID: 868151176693792523}
   containmentFraction: 0.5
   fallDuration: 0.35
+  spinDegrees: 220
+  shrinkDelayFraction: 0.3
   winBurst: {fileID: 1015454226408073246}
+  screenDelay: 0.8
 --- !u!1 &5043356062521187349
 GameObject:
   m_ObjectHideFlags: 0
