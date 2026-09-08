@@ -48,6 +48,10 @@ public class SceneLoader : MonoBehaviour
     {
         if (state == GameState.Win) SwapTo(WinScreenScene);
         else if (state == GameState.Lose) SwapTo(GameOverScene);
+        else if (state == GameState.Pause) ShowPauseMenu();
+        // Playing covers every way back out of the pause menu — resume, restart
+        // and main menu alike — so none of them can leave it open behind them.
+        else if (state == GameState.Playing) HidePauseMenu();
     }
 
     public void GoToMainMenu() => SwapTo(MainMenuScene);
@@ -55,7 +59,10 @@ public class SceneLoader : MonoBehaviour
     public void LoadGameplay() => SwapTo(GameplayScene);
     public void RetryLevel() => SwapTo(GameplayScene);
 
-    public void ShowPauseMenu()
+    // Private on purpose: pausing and unpausing go through GameManager's state so
+    // there's one source of truth for whether the run is paused, the same as win
+    // and lose. HandleStateChanged above is the only caller.
+    void ShowPauseMenu()
     {
         if (pauseMenuLoaded) return;
         pauseMenuLoaded = true;
@@ -63,7 +70,7 @@ public class SceneLoader : MonoBehaviour
         SceneManager.LoadScene(PauseMenuScene, LoadSceneMode.Additive);
     }
 
-    public void HidePauseMenu()
+    void HidePauseMenu()
     {
         if (!pauseMenuLoaded) return;
         pauseMenuLoaded = false;

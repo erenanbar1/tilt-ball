@@ -16,6 +16,8 @@ public class GameplayHUD : MonoBehaviour
     void Pause()
     {
         AudioManager.PlayClick();
-        SceneLoader.Instance.ShowPauseMenu();
+        // GameManager owns the paused state; SceneLoader brings the menu up in
+        // response, the same way it does for win and lose.
+        if (GameManager.Instance != null) GameManager.Instance.SetState(GameState.Pause);
     }
 }
