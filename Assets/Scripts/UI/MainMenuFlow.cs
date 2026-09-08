@@ -24,6 +24,7 @@ public class MainMenuFlow : MonoBehaviour
 
     public void Play()
     {
+        AudioManager.PlayClick();
         SceneLoader.Instance.GoToLevelSelect();
     }
 }

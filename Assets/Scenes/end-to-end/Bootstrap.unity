@@ -254,6 +254,7 @@ MonoBehaviour:
   winScreen: {fileID: 8300000, guid: f55b7fa8d885447b8860f3cf98c8d612, type: 3}
   loseHole: {fileID: 8300000, guid: d50df0230faee48449db88786c130702, type: 3}
   loseScreen: {fileID: 8300000, guid: e051706c723c34ccfbc119be36d98274, type: 3}
+  click: {fileID: 8300000, guid: 10cac8dbce45d4160a17ec096426646d, type: 3}
   musicVolume: 1
   duckedVolume: 0.1
   duckDuration: 0.2

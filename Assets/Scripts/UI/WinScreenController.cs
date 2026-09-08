@@ -29,6 +29,8 @@ public class WinScreenController : MonoBehaviour
 
     void NextLevel()
     {
+        AudioManager.PlayClick();
+
         var gm = GameManager.Instance;
         if (gm == null || gm.allLevels == null || gm.allLevels.Length == 0) return;
 

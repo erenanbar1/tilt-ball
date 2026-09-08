@@ -10,6 +10,12 @@ public class GameplayHUD : MonoBehaviour
 
     void Start()
     {
-        if (pauseButton != null) pauseButton.onClick.AddListener(() => SceneLoader.Instance.ShowPauseMenu());
+        if (pauseButton != null) pauseButton.onClick.AddListener(Pause);
+    }
+
+    void Pause()
+    {
+        AudioManager.PlayClick();
+        SceneLoader.Instance.ShowPauseMenu();
     }
 }

@@ -12,19 +12,27 @@ public class PauseController : MonoBehaviour
 
     void Start()
     {
-        if (resumeButton != null) resumeButton.onClick.AddListener(() => SceneLoader.Instance.HidePauseMenu());
+        if (resumeButton != null) resumeButton.onClick.AddListener(Resume);
         if (restartButton != null) restartButton.onClick.AddListener(Restart);
         if (mainMenuButton != null) mainMenuButton.onClick.AddListener(GoToMainMenu);
     }
 
+    void Resume()
+    {
+        AudioManager.PlayClick();
+        SceneLoader.Instance.HidePauseMenu();
+    }
+
     void Restart()
     {
+        AudioManager.PlayClick();
         SceneLoader.Instance.HidePauseMenu();
         SceneLoader.Instance.RetryLevel();
     }
 
     void GoToMainMenu()
     {
+        AudioManager.PlayClick();
         SceneLoader.Instance.HidePauseMenu();
         SceneLoader.Instance.GoToMainMenu();
     }

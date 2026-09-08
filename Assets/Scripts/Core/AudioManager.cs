@@ -24,6 +24,7 @@ public class AudioManager : MonoBehaviour
     public AudioClip winScreen;  // the win screen opening
     public AudioClip loseHole;   // the ball dropping into a losing hole
     public AudioClip loseScreen; // the "you have failed" screen opening
+    public AudioClip click;      // menu buttons — not the tilt controls, which are held rather than clicked
 
     [Header("Music levels")]
     [Range(0f, 1f)]
@@ -109,6 +110,15 @@ public class AudioManager : MonoBehaviour
     public void PlayLoseHole() => PlayDucked(loseHole);
     public void PlayWinScreen() => PlaySFX(winScreen);
     public void PlayLoseScreen() => PlaySFX(loseScreen);
+
+    // Static, unlike the four above: every menu button in the game calls this, so
+    // the "is there an AudioManager yet" check belongs here rather than repeated
+    // at a dozen call sites. Buttons that are held rather than clicked — the tilt
+    // controls — deliberately don't call it.
+    public static void PlayClick()
+    {
+        if (Instance != null) Instance.PlaySFX(Instance.click);
+    }
 
     void PlayDucked(AudioClip clip)
     {

@@ -11,7 +11,7 @@ public class LevelSelectController : MonoBehaviour
 
     void Start()
     {
-        if (backButton != null) backButton.onClick.AddListener(() => SceneLoader.Instance.GoToMainMenu());
+        if (backButton != null) backButton.onClick.AddListener(Back);
 
         var levels = GameManager.Instance != null ? GameManager.Instance.allLevels : null;
         if (levels == null || buttonContainer == null || levelButtonPrefab == null) return;
@@ -38,8 +38,15 @@ public class LevelSelectController : MonoBehaviour
 
         button.onClick.AddListener(() =>
         {
+            AudioManager.PlayClick();
             GameManager.Instance.currentLevel = level;
             SceneLoader.Instance.LoadGameplay();
         });
+    }
+
+    void Back()
+    {
+        AudioManager.PlayClick();
+        SceneLoader.Instance.GoToMainMenu();
     }
 }

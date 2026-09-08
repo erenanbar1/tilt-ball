@@ -29,6 +29,7 @@ public class GameOverController : MonoBehaviour
 
     void Retry()
     {
+        AudioManager.PlayClick();
         if (GameManager.Instance != null) GameManager.Instance.SetState(GameState.Playing);
         SceneLoader.Instance.RetryLevel();
     }
