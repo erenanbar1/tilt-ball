@@ -6,11 +6,26 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/MainMenu.unity
-    guid: 22b82195b64f34ddebe3e6d82ad711d7
+    path: Assets/Scenes/end-to-end/Bootstrap.unity
+    guid: d9e2bbefc0e1a0c48ac5687462854fb1
   - enabled: 1
-    path: Assets/Scenes/Level.unity
-    guid: 928cf3ffe47cb487a9e8e7fb0e334da1
+    path: Assets/Scenes/end-to-end/MainMenu.unity
+    guid: 24fdadacf8bf51a4989f2e9bcb58ab56
+  - enabled: 1
+    path: Assets/Scenes/end-to-end/LevelSelect.unity
+    guid: 6b952e6ccaba8234584e4b61da9bd835
+  - enabled: 1
+    path: Assets/Scenes/end-to-end/Gameplay.unity
+    guid: 11ea60e878809af4581c3cd31c88c1bb
+  - enabled: 1
+    path: Assets/Scenes/end-to-end/PauseMenu.unity
+    guid: 0bf4256f0e0591247a3720b82e74aaec
+  - enabled: 1
+    path: Assets/Scenes/end-to-end/WinScreen.unity
+    guid: b3d0402200d041d429ef2cf418c6d60d
+  - enabled: 1
+    path: Assets/Scenes/end-to-end/GameOver.unity
+    guid: 4c973b48570e92d4399efd0610ef9d2e
   m_configObjects:
     com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
