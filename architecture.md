@@ -2,7 +2,7 @@
 
 This document describes how the shipping game is put together. The live game lives entirely under
 `Assets/Scenes/end-to-end/`; `Assets/Scenes/_Archive/` and `Assets/Scenes/TiltBallScene.unity` are earlier
-layouts kept for reference and are **not** part of the current architecture (see [Known dead code](#known-dead-code-and-inconsistencies)).
+layouts kept for reference and are **not** part of the current architecture (see [Cleanup history](#cleanup-history)).
 
 Engine: Unity `6000.3.12f1`, Universal Render Pipeline, new Input System, 2D physics.
 Third-party: [PrimeTween](https://github.com/KyryloKuzyk/PrimeTween) (via OpenUPM) drives every animation in the game — no `Animator`/coroutine tweening is used.
@@ -50,7 +50,7 @@ Each of the five "main" scenes (MainMenu, LevelSelect, Gameplay, WinScreen, Game
 
 | Script | Responsibility |
 |---|---|
-| `AudioManager` | One looping `AudioSource` for music, one one-shot source for SFX, so SFX never interrupts music. |
+| `AudioManager` | One looping `AudioSource` for music, one one-shot source for SFX, so SFX never interrupts music. Also owns menu-click sound and win/lose ducking (below). |
 | `SceneLoader` | Owns all scene transitions (§1) and the pause overlay. |
 | `GameManager` | Tracks `CurrentState` (`Playing/Win/Lose/Pause`), the selected `currentLevel`/`allLevels`, and fires `OnStateChanged`. Holds no obstacle/geometry knowledge, and never touches scenes or `Time.timeScale` itself — purely run state. |
 | `SaveManager` | Persists `HighestUnlockedLevelIndex` via `PlayerPrefs`; monotonically increasing. |
@@ -58,6 +58,18 @@ Each of the five "main" scenes (MainMenu, LevelSelect, Gameplay, WinScreen, Game
 
 `SceneLoader` subscribes to `GameManager.OnStateChanged` in its own `Start()` and reacts to `Win`/`Lose` by
 swapping to WinScreen/GameOver — this is the one place gameplay outcome and scene navigation are connected.
+
+`AudioManager` subscribes to the same event to know when a run returns to `Playing` (Retry and Next Level both
+set that state before loading their next scene), which is its cue to fade the music back up. The four outcome
+sounds (`winHole`, `winScreen`, `loseHole`, `loseScreen`) are triggered directly by the scripts that need them —
+`WinTrigger`/`LoseTrigger` call `PlayWinHole`/`PlayLoseHole` as the ball starts falling in, `WinScreenController`/
+`GameOverController` call `PlayWinScreen`/`PlayLoseScreen` from their own `Start()` — rather than through the
+state-change subscription, since by the time a `Win`/`Lose` state actually lands the ball has already fallen. The
+two hole sounds also duck the music (down over `duckDuration`, back up over `restoreDuration`, both driven by
+PrimeTween on unscaled time so the pause menu's `Time.timeScale = 0` can't stall a fade partway); the screen
+sounds land once the theme is already ducked. Every menu button in the game (Play, level buttons, pause/resume/
+restart/main-menu, retry, next level, back) calls the static `AudioManager.PlayClick()` — the tilt controls,
+which are held rather than clicked, deliberately don't.
 
 A static-utility sixth piece, **`PerformanceSettings`**, runs via
 `[RuntimeInitializeOnLoadMethod(BeforeSceneLoad)]` before Bootstrap even loads: it pins `targetFrameRate = 60`,
@@ -67,14 +79,11 @@ unless `targetFrameRate` is set explicitly.
 ### A load-bearing project setting
 
 **Enter Play Mode Options are enabled with both domain reload and scene reload disabled**
-(`ProjectSettings/EditorSettings.asset: m_EnterPlayModeOptions: 3`). This is why several scripts look unusual:
-
-- `LevelLoader`'s (legacy) static `pendingLevelIndex` is explicitly reset via a
-  `[RuntimeInitializeOnLoadMethod(SubsystemRegistration)]` method — without it, a static field from a previous
-  Play session would silently leak into the next one.
-- `BallOnPlatformController` re-applies its kinematic-body setup every `FixedUpdate` (driven off the
-  `Rigidbody2D`'s own state) rather than once in `Awake`, because as an `[ExecuteAlways]` component it's already
-  "awake" from Edit mode and `Awake` never fires again when Play mode starts without a domain reload.
+(`ProjectSettings/EditorSettings.asset: m_EnterPlayModeOptions: 3`). This is why `BallOnPlatformController`
+re-applies its kinematic-body setup every `FixedUpdate` (driven off the `Rigidbody2D`'s own state) rather than
+once in `Awake` — as an `[ExecuteAlways]` component it's already "awake" from Edit mode, and `Awake` never fires
+again when Play mode starts without a domain reload. (The former other example here, a static-field reset on the
+now-removed `LevelLoader`, no longer applies — see [Cleanup history](#cleanup-history).)
 
 ## 3. Level system
 
@@ -128,8 +137,9 @@ ported 1:1 from an HTML prototype the game is based on. The ball is `Rigidbody2D
 Unity physics only re-enters the picture for the trigger colliders on the win/lose holes.
 
 **Win/Lose** are structurally identical `OnTriggerStay2D` checks that both play the same three-part PrimeTween
-fall-in sequence (pull to hole center, spin, shrink) before reporting to `GameManager`, but differ in how
-"contained enough" is measured:
+fall-in sequence (pull to hole center, spin, shrink) before reporting to `GameManager`, and both fire their
+`AudioManager` hole sound (§2) the instant the ball is judged sufficiently contained, so the sound lands with the
+fall rather than the screen transition a beat later. They differ in how "contained enough" is measured:
 - `WinTrigger` (on `WinningHole.prefab`) assumes a circular hole and just compares ball-to-hole-center distance
   against the fill sprite's radius (default containment: half in).
 - `LoseTrigger` (on the 20 `LoseHole_N.prefab` variants) samples points around the ball's rim against the hole's
@@ -155,9 +165,16 @@ Each screen scene has one thin controller (`MainMenuFlow`, `LevelSelectControlle
 Two shared utilities back every screen:
 - **`ScreenEntranceAnimator`** — a static PrimeTween helper for the drop-in-with-overshoot title animation and
   the pop-in-then-pulse button animation, used identically by `WinScreenController`, `GameOverController`, and
-  `MainMenuFlow`.
+  `MainMenuFlow`. Its `AnimateTitle` takes an optional `idleAfter` flag that starts a gentle yoyo scale breathing
+  loop once the drop-in lands; only `MainMenuFlow`'s title uses it, since that's the one title that stays on
+  screen (WinScreen/GameOver reload out before an idle loop would read).
 - **`SafeArea`** — adjusts a `RectTransform`'s anchors to `Screen.safeArea` every frame, so notches, the Dynamic
   Island, and iOS slide-over/split-view are handled live rather than once at launch.
+
+Gameplay's pause button is `Assets/Prefabs/PauseButton.prefab` — a plain `Button`/`Image`, wired to
+`GameplayHUD.pauseButton` in the inspector — sitting in front of a decorative `TopBar` image (`HUD_TopBar.png`)
+on the Gameplay canvas. `Assets/Art/Settings_Button.png` was added alongside it but isn't placed in any scene or
+referenced by any script yet — there is no settings menu.
 
 ## 6. Persistence
 
