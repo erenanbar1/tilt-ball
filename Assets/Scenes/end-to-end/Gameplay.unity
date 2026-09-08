@@ -508,6 +508,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelController
   obstaclesRoot: {fileID: 211100575}
+  stick: {fileID: 0}
+  cameraFollow: {fileID: 0}
+  pulleys: {fileID: 0}
+  winningHole: {fileID: 0}
 --- !u!850595691 &905227744
 LightingSettings:
   m_ObjectHideFlags: 0
@@ -798,11 +802,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2850851892769741298, guid: 1e00b85310b974e21a592e741a5e61ec, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 140
+      value: 119.7678
       objectReference: {fileID: 0}
     - target: {fileID: 2850851892769741298, guid: 1e00b85310b974e21a592e741a5e61ec, type: 3}
       propertyPath: m_SizeDelta.y
-      value: 140
+      value: 119.7679
       objectReference: {fileID: 0}
     - target: {fileID: 2850851892769741298, guid: 1e00b85310b974e21a592e741a5e61ec, type: 3}
       propertyPath: m_LocalPosition.x
@@ -834,11 +838,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2850851892769741298, guid: 1e00b85310b974e21a592e741a5e61ec, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -120
+      value: -141
       objectReference: {fileID: 0}
     - target: {fileID: 2850851892769741298, guid: 1e00b85310b974e21a592e741a5e61ec, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -140
+      value: -96
       objectReference: {fileID: 0}
     - target: {fileID: 2850851892769741298, guid: 1e00b85310b974e21a592e741a5e61ec, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -851,6 +855,10 @@ PrefabInstance:
     - target: {fileID: 2850851892769741298, guid: 1e00b85310b974e21a592e741a5e61ec, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2850851892769741298, guid: 1e00b85310b974e21a592e741a5e61ec, type: 3}
+      propertyPath: m_ConstrainProportionsScale
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -871,7 +879,7 @@ PrefabInstance:
       objectReference: {fileID: 21300000, guid: e729a41959d224884b156fdce1f8dc4d, type: 3}
     - target: {fileID: 2831038935425207854, guid: 46b6433be677d4dda81da51e2b1cee72, type: 3}
       propertyPath: m_LocalScale.x
-      value: 0.67828536
+      value: 0.53002447
       objectReference: {fileID: 0}
     - target: {fileID: 2831038935425207854, guid: 46b6433be677d4dda81da51e2b1cee72, type: 3}
       propertyPath: m_LocalScale.y
@@ -1231,13 +1239,48 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 2513395271071290356, guid: 5c477889c632b43579a2a31e965dec90, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8994656542438104365}
   m_SourcePrefab: {fileID: 100100000, guid: 5c477889c632b43579a2a31e965dec90, type: 3}
 --- !u!4 &8994656542438104361 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3736833383359344295, guid: 5c477889c632b43579a2a31e965dec90, type: 3}
   m_PrefabInstance: {fileID: 8994656542438104360}
   m_PrefabAsset: {fileID: 0}
+--- !u!4 &8994656542438104362 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 594168523863414990, guid: 5c477889c632b43579a2a31e965dec90, type: 3}
+  m_PrefabInstance: {fileID: 8994656542438104360}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &8994656542438104363 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 410852199165240496, guid: 5c477889c632b43579a2a31e965dec90, type: 3}
+  m_PrefabInstance: {fileID: 8994656542438104360}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &8994656542438104364 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2513395271071290356, guid: 5c477889c632b43579a2a31e965dec90, type: 3}
+  m_PrefabInstance: {fileID: 8994656542438104360}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &8994656542438104365
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8994656542438104364}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b9896a9bcb7bb7e4a93d2939e9ba0ea8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PulleyScreenFit
+  targetCamera: {fileID: 266426310}
+  leftPulley: {fileID: 8994656542438104363}
+  rightPulley: {fileID: 8994656542438104362}
+  edgeMargin: 0.06
+  minCentreOffset: 1.95
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
