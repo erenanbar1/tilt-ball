@@ -152,7 +152,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MainMenuFlow
   playButton: {fileID: 747345183}
-  tallButton: {fileID: 0}
   title: {fileID: 1533489065}
 --- !u!114 &33216796
 MonoBehaviour:

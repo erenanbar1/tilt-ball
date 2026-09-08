@@ -3,19 +3,17 @@ using UnityEngine.UI;
 
 // Lives in the PauseMenu scene, loaded additively over Gameplay when GameManager
 // enters the Pause state (SceneLoader has already set Time.timeScale to 0 by the
-// time this scene is up). Every button here leaves that state the same way —
-// back to Playing — which is what closes the menu; the two that navigate then
-// ask SceneLoader for the scene they want.
+// time this scene is up). Both buttons leave that state the same way — back to
+// Playing — which is what closes the menu; the one that navigates then asks
+// SceneLoader for the scene it wants.
 public class PauseController : MonoBehaviour
 {
     public Button resumeButton;
-    public Button restartButton;
     public Button mainMenuButton;
 
     void Start()
     {
         if (resumeButton != null) resumeButton.onClick.AddListener(Resume);
-        if (restartButton != null) restartButton.onClick.AddListener(Restart);
         if (mainMenuButton != null) mainMenuButton.onClick.AddListener(GoToMainMenu);
     }
 
@@ -23,13 +21,6 @@ public class PauseController : MonoBehaviour
     {
         AudioManager.PlayClick();
         Unpause();
-    }
-
-    void Restart()
-    {
-        AudioManager.PlayClick();
-        Unpause();
-        SceneLoader.Instance.RetryLevel();
     }
 
     void GoToMainMenu()
