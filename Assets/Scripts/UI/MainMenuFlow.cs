@@ -6,11 +6,13 @@ using UnityEngine.UI;
 public class MainMenuFlow : MonoBehaviour
 {
     public Button playButton;
+    public Button tallButton;
     public RectTransform title;
 
     void Awake()
     {
         if (playButton != null) playButton.onClick.AddListener(Play);
+        if (tallButton != null) tallButton.onClick.AddListener(PlayTall);
     }
 
     void Start()
@@ -22,9 +24,16 @@ public class MainMenuFlow : MonoBehaviour
         ScreenEntranceAnimator.AnimateTitle(title, idleAfter: true);
     }
 
-    public void Play()
+    // The mode is set here, on the way in, and everything downstream — which
+    // levels LevelSelect lists, which unlock track gates them, which gameplay
+    // scene loads — follows from it.
+    public void Play() => StartMode(GameMode.Classic);
+    public void PlayTall() => StartMode(GameMode.Tall);
+
+    void StartMode(GameMode mode)
     {
         AudioManager.PlayClick();
+        if (GameManager.Instance != null) GameManager.Instance.SetMode(mode);
         SceneLoader.Instance.GoToLevelSelect();
     }
 }

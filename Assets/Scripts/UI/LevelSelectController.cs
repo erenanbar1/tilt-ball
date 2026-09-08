@@ -1,8 +1,9 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-// Spawns one button per level in GameManager.allLevels, disabling any beyond
-// what SaveManager has unlocked. Lives in the LevelSelect scene.
+// Spawns one button per level in the active mode's list, disabling any beyond
+// what SaveManager has unlocked for that mode. Lives in the LevelSelect scene,
+// which both modes share — the mode was already chosen on the Main Menu.
 public class LevelSelectController : MonoBehaviour
 {
     public Transform buttonContainer;
@@ -13,7 +14,7 @@ public class LevelSelectController : MonoBehaviour
     {
         if (backButton != null) backButton.onClick.AddListener(Back);
 
-        var levels = GameManager.Instance != null ? GameManager.Instance.allLevels : null;
+        var levels = GameManager.Instance != null ? GameManager.Instance.CurrentLevels : null;
         if (levels == null || buttonContainer == null || levelButtonPrefab == null) return;
 
         for (int i = 0; i < levels.Length; i++)
