@@ -3,16 +3,17 @@ using UnityEngine.UI;
 
 // Lives in the MainMenu scene. Routes through SceneLoader like every other
 // scene transition — no direct SceneManager calls here.
+//
+// One Play button, no mode choice: both modes are listed together on the
+// LevelSelect screen, and picking a level there is what sets the mode.
 public class MainMenuFlow : MonoBehaviour
 {
     public Button playButton;
-    public Button tallButton;
     public RectTransform title;
 
     void Awake()
     {
         if (playButton != null) playButton.onClick.AddListener(Play);
-        if (tallButton != null) tallButton.onClick.AddListener(PlayTall);
     }
 
     void Start()
@@ -24,16 +25,9 @@ public class MainMenuFlow : MonoBehaviour
         ScreenEntranceAnimator.AnimateTitle(title, idleAfter: true);
     }
 
-    // The mode is set here, on the way in, and everything downstream — which
-    // levels LevelSelect lists, which unlock track gates them, which gameplay
-    // scene loads — follows from it.
-    public void Play() => StartMode(GameMode.Classic);
-    public void PlayTall() => StartMode(GameMode.Tall);
-
-    void StartMode(GameMode mode)
+    public void Play()
     {
         AudioManager.PlayClick();
-        if (GameManager.Instance != null) GameManager.Instance.SetMode(mode);
         SceneLoader.Instance.GoToLevelSelect();
     }
 }
