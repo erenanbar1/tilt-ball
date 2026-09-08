@@ -44,10 +44,15 @@ public class SceneLoader : MonoBehaviour
         if (GameManager.Instance != null) GameManager.Instance.OnStateChanged -= HandleStateChanged;
     }
 
+    // GameManager is the source of truth for whether the game is paused —
+    // this just translates that into the actual scene load/unload and
+    // timescale work. Pause() below is the only place anything requests Pause.
     void HandleStateChanged(GameState state)
     {
         if (state == GameState.Win) SwapTo(WinScreenScene);
         else if (state == GameState.Lose) SwapTo(GameOverScene);
+        else if (state == GameState.Pause) ShowPauseMenu();
+        else if (state == GameState.Playing) HidePauseMenu(); // no-op if not paused
     }
 
     public void GoToMainMenu() => SwapTo(MainMenuScene);
@@ -55,7 +60,7 @@ public class SceneLoader : MonoBehaviour
     public void LoadGameplay() => SwapTo(GameplayScene);
     public void RetryLevel() => SwapTo(GameplayScene);
 
-    public void ShowPauseMenu()
+    void ShowPauseMenu()
     {
         if (pauseMenuLoaded) return;
         pauseMenuLoaded = true;
@@ -63,7 +68,7 @@ public class SceneLoader : MonoBehaviour
         SceneManager.LoadScene(PauseMenuScene, LoadSceneMode.Additive);
     }
 
-    public void HidePauseMenu()
+    void HidePauseMenu()
     {
         if (!pauseMenuLoaded) return;
         pauseMenuLoaded = false;
