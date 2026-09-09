@@ -1,0 +1,37 @@
+{
+  "friendlyName": "iPhone 15",
+  "version": 1,
+  "screens": [
+    {
+      "width": 1179,
+      "height": 2556,
+      "dpi": 460,
+      "presentation": {
+        "overlayPath": "Overlays/iPhone15_Overlay.png",
+        "borderSize": { "x": 65, "y": 65, "z": 65, "w": 65 },
+        "cornerRadius": 230
+      },
+      "orientations": [
+        {
+          "orientation": 1,
+          "safeArea": { "serializedVersion": "2", "x": 0, "y": 102, "width": 1179, "height": 2277 },
+          "cutouts": [
+            { "serializedVersion": "2", "x": 402, "y": 2413, "width": 375, "height": 110 }
+          ]
+        },
+        { "orientation": 3, "safeArea": { "serializedVersion": "2", "x": 177, "y": 63, "width": 2202, "height": 1116 } },
+        { "orientation": 4, "safeArea": { "serializedVersion": "2", "x": 177, "y": 63, "width": 2202, "height": 1116 } }
+      ]
+    }
+  ],
+  "systemInfo": {
+    "operatingSystem": "iOS 17.0",
+    "deviceModel": "iPhone15,4",
+    "deviceType": 1,
+    "supportsAccelerometer": true,
+    "supportsGyroscope": true,
+    "supportsVibration": true,
+    "supportsAudio": true,
+    "supportsLocationService": true
+  }
+}
