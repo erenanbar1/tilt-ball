@@ -11,9 +11,14 @@ public class MainMenuFlow : MonoBehaviour
     public Button playButton;
     public RectTransform title;
 
+    [Header("Settings")]
+    public Button settingsButton;
+    public SettingsPanelController settingsPanel;
+
     void Awake()
     {
         if (playButton != null) playButton.onClick.AddListener(Play);
+        if (settingsButton != null && settingsPanel != null) settingsButton.onClick.AddListener(settingsPanel.Open);
     }
 
     void Start()

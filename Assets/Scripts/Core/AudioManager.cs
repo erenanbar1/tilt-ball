@@ -38,6 +38,15 @@ public class AudioManager : MonoBehaviour
 
     Tween musicFade;
 
+    const string MusicEnabledKey = "MusicEnabled";
+    const string SfxEnabledKey = "SfxEnabled";
+
+    // Muted independently of volume — via AudioSource.mute, not by zeroing
+    // volume — so it can't collide with the duck/restore tweens above, which
+    // already own that field.
+    public bool MusicEnabled { get; private set; } = true;
+    public bool SfxEnabled { get; private set; } = true;
+
     void Awake()
     {
         if (Instance != null && Instance != this)
@@ -53,6 +62,11 @@ public class AudioManager : MonoBehaviour
         musicSource.playOnAwake = false;
         sfxSource.loop = false;
         sfxSource.playOnAwake = false;
+
+        MusicEnabled = PlayerPrefs.GetInt(MusicEnabledKey, 1) == 1;
+        SfxEnabled = PlayerPrefs.GetInt(SfxEnabledKey, 1) == 1;
+        musicSource.mute = !MusicEnabled;
+        sfxSource.mute = !SfxEnabled;
     }
 
     // Start, not Awake, so GameManager.Instance is set no matter which order the
@@ -118,6 +132,25 @@ public class AudioManager : MonoBehaviour
     public static void PlayClick()
     {
         if (Instance != null) Instance.PlaySFX(Instance.click);
+    }
+
+    public void ToggleMusic() => SetMusicEnabled(!MusicEnabled);
+    public void ToggleSfx() => SetSfxEnabled(!SfxEnabled);
+
+    public void SetMusicEnabled(bool enabled)
+    {
+        MusicEnabled = enabled;
+        if (musicSource != null) musicSource.mute = !enabled;
+        PlayerPrefs.SetInt(MusicEnabledKey, enabled ? 1 : 0);
+        PlayerPrefs.Save();
+    }
+
+    public void SetSfxEnabled(bool enabled)
+    {
+        SfxEnabled = enabled;
+        if (sfxSource != null) sfxSource.mute = !enabled;
+        PlayerPrefs.SetInt(SfxEnabledKey, enabled ? 1 : 0);
+        PlayerPrefs.Save();
     }
 
     void PlayDucked(AudioClip clip)
