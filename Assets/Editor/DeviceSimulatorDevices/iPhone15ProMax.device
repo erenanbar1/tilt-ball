@@ -1,0 +1,37 @@
+{
+  "friendlyName": "iPhone 15 Pro Max",
+  "version": 1,
+  "screens": [
+    {
+      "width": 1290,
+      "height": 2796,
+      "dpi": 460,
+      "presentation": {
+        "overlayPath": "Overlays/iPhone15ProMax_Overlay.png",
+        "borderSize": { "x": 65, "y": 65, "z": 65, "w": 65 },
+        "cornerRadius": 230
+      },
+      "orientations": [
+        {
+          "orientation": 1,
+          "safeArea": { "serializedVersion": "2", "x": 0, "y": 102, "width": 1290, "height": 2517 },
+          "cutouts": [
+            { "serializedVersion": "2", "x": 457, "y": 2653, "width": 375, "height": 110 }
+          ]
+        },
+        { "orientation": 3, "safeArea": { "serializedVersion": "2", "x": 177, "y": 63, "width": 2442, "height": 1227 } },
+        { "orientation": 4, "safeArea": { "serializedVersion": "2", "x": 177, "y": 63, "width": 2442, "height": 1227 } }
+      ]
+    }
+  ],
+  "systemInfo": {
+    "operatingSystem": "iOS 17.0",
+    "deviceModel": "iPhone16,2",
+    "deviceType": 1,
+    "supportsAccelerometer": true,
+    "supportsGyroscope": true,
+    "supportsVibration": true,
+    "supportsAudio": true,
+    "supportsLocationService": true
+  }
+}
