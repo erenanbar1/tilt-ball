@@ -13,6 +13,8 @@ public class WinScreenController : MonoBehaviour
 
     void Start()
     {
+        if (AudioManager.Instance != null) AudioManager.Instance.PlayWinScreen();
+
         if (backdrop != null)
         {
             backdrop.alpha = 0f;
@@ -27,15 +29,20 @@ public class WinScreenController : MonoBehaviour
 
     void NextLevel()
     {
+        AudioManager.PlayClick();
+
         var gm = GameManager.Instance;
-        if (gm == null || gm.allLevels == null || gm.allLevels.Length == 0) return;
+        // Advances within whichever mode's list is active, so finishing a Tall
+        // level leads to the next Tall one rather than back into Classic.
+        var levels = gm != null ? gm.CurrentLevels : null;
+        if (levels == null || levels.Length == 0) return;
 
         int nextIndex = gm.CurrentLevelIndex() + 1;
-        if (nextIndex >= gm.allLevels.Length) nextIndex = 0; // loop back to the first level
+        if (nextIndex >= levels.Length) nextIndex = 0; // loop back to the first level
 
         if (SaveManager.Instance != null) SaveManager.Instance.UnlockLevel(nextIndex);
 
-        gm.currentLevel = gm.allLevels[nextIndex];
+        gm.currentLevel = levels[nextIndex];
         gm.SetState(GameState.Playing);
         SceneLoader.Instance.LoadGameplay();
     }

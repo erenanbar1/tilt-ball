@@ -1,38 +1,40 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-// Lives in the PauseMenu scene, loaded additively over Gameplay by SceneLoader
-// reacting to GameManager.SetState(GameState.Pause) (which has already set
-// Time.timeScale to 0 by the time this scene is up).
+// Lives in the PauseMenu scene, loaded additively over Gameplay when GameManager
+// enters the Pause state (SceneLoader has already set Time.timeScale to 0 by the
+// time this scene is up). Both buttons leave that state the same way — back to
+// Playing — which is what closes the menu; the one that navigates then asks
+// SceneLoader for the scene it wants.
 public class PauseController : MonoBehaviour
 {
     public Button resumeButton;
-    public Button restartButton;
     public Button mainMenuButton;
 
     void Start()
     {
         if (resumeButton != null) resumeButton.onClick.AddListener(Resume);
-        if (restartButton != null) restartButton.onClick.AddListener(Restart);
         if (mainMenuButton != null) mainMenuButton.onClick.AddListener(GoToMainMenu);
     }
 
-    // Setting Playing is what tells SceneLoader to unload the pause overlay
-    // and restore Time.timeScale — see SceneLoader.HandleStateChanged.
     void Resume()
     {
-        if (GameManager.Instance != null) GameManager.Instance.SetState(GameState.Playing);
-    }
-
-    void Restart()
-    {
-        if (GameManager.Instance != null) GameManager.Instance.SetState(GameState.Playing);
-        SceneLoader.Instance.RetryLevel();
+        AudioManager.PlayClick();
+        Unpause();
     }
 
     void GoToMainMenu()
     {
-        if (GameManager.Instance != null) GameManager.Instance.SetState(GameState.Playing);
+        AudioManager.PlayClick();
+        Unpause();
         SceneLoader.Instance.GoToMainMenu();
+    }
+
+    // Leaving Pause is what closes the menu and restores timeScale. Without it
+    // the state would stay Pause and the next press of the pause button would be
+    // swallowed as a no-op change.
+    void Unpause()
+    {
+        if (GameManager.Instance != null) GameManager.Instance.SetState(GameState.Playing);
     }
 }

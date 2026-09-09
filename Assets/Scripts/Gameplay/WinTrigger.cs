@@ -27,6 +27,12 @@ public class WinTrigger : MonoBehaviour
     public float shrinkDelayFraction = 0.3f;
     public ParticleSystem winBurst; // stars that fire outward once the ball is fully swallowed
 
+    [Header("Result screen")]
+    // Beat between the ball disappearing and the win screen taking over, so the
+    // hole sound gets clear air before the screen brings its own — without
+    // waiting out the whole clip, which drags.
+    public float screenDelay = 1f;
+
     private bool won;
 
     void Awake()
@@ -41,6 +47,9 @@ public class WinTrigger : MonoBehaviour
         if (!IsSufficientlyContained(other)) return;
 
         won = true;
+        // Sounds the drop as it starts, so it reads with the fall rather than
+        // arriving on top of the win screen's own sound a moment later.
+        if (AudioManager.Instance != null) AudioManager.Instance.PlayWinHole();
         FallIntoHole(other);
     }
 
@@ -101,6 +110,16 @@ public class WinTrigger : MonoBehaviour
         if (winBurst != null) winBurst.Play();
         if (stick != null) stick.inputEnabled = false;
         if (winMessage != null) winMessage.SetActive(true);
+
+        // The burst and the message above land immediately, so this hold isn't
+        // dead air — it just keeps the win screen's own sound off the top of the
+        // hole sound.
+        if (screenDelay > 0f) Tween.Delay(this, screenDelay, self => self.DeclareWin());
+        else DeclareWin();
+    }
+
+    void DeclareWin()
+    {
         if (gameManager != null) gameManager.SetState(GameState.Win);
     }
 }

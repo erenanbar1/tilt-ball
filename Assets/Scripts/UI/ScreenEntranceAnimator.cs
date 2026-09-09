@@ -8,8 +8,11 @@ using UnityEngine.UI;
 public static class ScreenEntranceAnimator
 {
     // Falls in from off the top and overshoots into place, unwinding a slight
-    // tilt as it lands.
-    public static void AnimateTitle(RectTransform title, float dropDistance = 520f, float duration = 0.55f, float tiltDegrees = 7f)
+    // tilt as it lands. When idleAfter is set, it keeps breathing gently in
+    // place once it lands — same idea as MrBallIdle's body pulse — so a title
+    // left on screen (the Main Menu's) doesn't just go static.
+    public static void AnimateTitle(RectTransform title, float dropDistance = 520f, float duration = 0.55f, float tiltDegrees = 7f,
+        bool idleAfter = false, float idleScale = 1.035f, float idleDuration = 1.8f)
     {
         if (title == null) return;
 
@@ -17,7 +20,15 @@ public static class ScreenEntranceAnimator
         title.anchoredPosition = resting + new Vector2(0f, dropDistance);
         title.localEulerAngles = new Vector3(0f, 0f, tiltDegrees);
 
-        Tween.UIAnchoredPosition(title, resting, duration, Ease.OutBack);
+        Vector3 restingScale = title.localScale;
+
+        Tween.UIAnchoredPosition(title, resting, duration, Ease.OutBack)
+            .OnComplete(title, t =>
+            {
+                if (!idleAfter) return;
+                Tween.Scale(t, restingScale, restingScale * idleScale, idleDuration, Ease.InOutSine,
+                    cycles: -1, cycleMode: CycleMode.Yoyo);
+            });
         Tween.LocalEulerAngles(title, new Vector3(0f, 0f, tiltDegrees), Vector3.zero, duration, Ease.OutBack);
     }
 

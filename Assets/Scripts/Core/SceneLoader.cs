@@ -11,6 +11,7 @@ public class SceneLoader : MonoBehaviour
     const string MainMenuScene = "MainMenu";
     const string LevelSelectScene = "LevelSelect";
     const string GameplayScene = "Gameplay";
+    const string TallGameplayScene = "GameplayTall";
     const string PauseMenuScene = "PauseMenu";
     const string WinScreenScene = "WinScreen";
     const string GameOverScene = "GameOver";
@@ -44,22 +45,33 @@ public class SceneLoader : MonoBehaviour
         if (GameManager.Instance != null) GameManager.Instance.OnStateChanged -= HandleStateChanged;
     }
 
-    // GameManager is the source of truth for whether the game is paused —
-    // this just translates that into the actual scene load/unload and
-    // timescale work. Pause() below is the only place anything requests Pause.
     void HandleStateChanged(GameState state)
     {
         if (state == GameState.Win) SwapTo(WinScreenScene);
         else if (state == GameState.Lose) SwapTo(GameOverScene);
         else if (state == GameState.Pause) ShowPauseMenu();
-        else if (state == GameState.Playing) HidePauseMenu(); // no-op if not paused
+        // Playing covers every way back out of the pause menu — resume, restart
+        // and main menu alike — so none of them can leave it open behind them.
+        else if (state == GameState.Playing) HidePauseMenu();
     }
 
     public void GoToMainMenu() => SwapTo(MainMenuScene);
     public void GoToLevelSelect() => SwapTo(LevelSelectScene);
-    public void LoadGameplay() => SwapTo(GameplayScene);
-    public void RetryLevel() => SwapTo(GameplayScene);
+    // Both go through the mode, so every existing caller — LevelSelect picking a
+    // level, the win screen's Next Level, Retry, and the pause menu's Restart —
+    // lands in the right scene without knowing a second mode exists.
+    public void LoadGameplay() => SwapTo(ActiveGameplayScene());
+    public void RetryLevel() => SwapTo(ActiveGameplayScene());
 
+    string ActiveGameplayScene()
+    {
+        bool tall = GameManager.Instance != null && GameManager.Instance.CurrentMode == GameMode.Tall;
+        return tall ? TallGameplayScene : GameplayScene;
+    }
+
+    // Private on purpose: pausing and unpausing go through GameManager's state so
+    // there's one source of truth for whether the run is paused, the same as win
+    // and lose. HandleStateChanged above is the only caller.
     void ShowPauseMenu()
     {
         if (pauseMenuLoaded) return;

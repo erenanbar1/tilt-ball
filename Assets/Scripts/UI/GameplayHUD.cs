@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 // Lives on Gameplay's Canvas. Wires the pause button through code, since
-// GameManager lives in a different scene (Bootstrap) and can't be dragged
+// SceneLoader lives in a different scene (Bootstrap) and can't be dragged
 // into an Inspector UnityEvent across scene boundaries.
 public class GameplayHUD : MonoBehaviour
 {
@@ -15,6 +15,9 @@ public class GameplayHUD : MonoBehaviour
 
     void Pause()
     {
+        AudioManager.PlayClick();
+        // GameManager owns the paused state; SceneLoader brings the menu up in
+        // response, the same way it does for win and lose.
         if (GameManager.Instance != null) GameManager.Instance.SetState(GameState.Pause);
     }
 }

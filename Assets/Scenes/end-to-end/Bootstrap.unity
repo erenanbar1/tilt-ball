@@ -249,6 +249,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AudioManager
   musicSource: {fileID: 1074333995}
   sfxSource: {fileID: 1074333993}
+  mainTheme: {fileID: 8300000, guid: e1c015b0496fc49c895aa51daf65a17d, type: 3}
+  winHole: {fileID: 8300000, guid: de0aab5609b4841beb8cbad3ac39af61, type: 3}
+  winScreen: {fileID: 8300000, guid: f55b7fa8d885447b8860f3cf98c8d612, type: 3}
+  loseHole: {fileID: 8300000, guid: d50df0230faee48449db88786c130702, type: 3}
+  loseScreen: {fileID: 8300000, guid: e051706c723c34ccfbc119be36d98274, type: 3}
+  click: {fileID: 8300000, guid: 10cac8dbce45d4160a17ec096426646d, type: 3}
+  musicVolume: 1
+  duckedVolume: 0.1
+  duckDuration: 0.2
+  restoreDuration: 0.35
 --- !u!82 &1074333995
 AudioSource:
   m_ObjectHideFlags: 0
@@ -490,6 +500,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 83822a1c626c7de42bb50e06af68beab, type: 2}
   - {fileID: 11400000, guid: 631278b0569cafa4195b55dca519f30e, type: 2}
   - {fileID: 11400000, guid: 415b5fefa4101bd45950a74b80bca913, type: 2}
+  tallLevels:
+  - {fileID: 11400000, guid: 45ec95d6d306067418846919bce50515, type: 2}
 --- !u!4 &1807381603
 Transform:
   m_ObjectHideFlags: 0

@@ -39,6 +39,12 @@ public class LoseTrigger : MonoBehaviour
     public float shrinkDelayFraction = 0.3f;
     public ParticleSystem loseBurst;
 
+    [Header("Result screen")]
+    // Beat between the ball disappearing and the game over screen taking over, so
+    // the hole sound gets clear air before the screen brings its own — without
+    // waiting out the whole clip, which drags.
+    public float screenDelay = 1f;
+
     private bool lost;
     private Collider2D holeCollider;
 
@@ -55,6 +61,9 @@ public class LoseTrigger : MonoBehaviour
         if (!IsSufficientlyContained(other)) return;
 
         lost = true;
+        // Sounds the drop as it starts, so it reads with the fall rather than
+        // arriving on top of the game over screen's own sound a moment later.
+        if (AudioManager.Instance != null) AudioManager.Instance.PlayLoseHole();
         FallIntoHole(other);
     }
 
@@ -125,6 +134,16 @@ public class LoseTrigger : MonoBehaviour
         if (loseBurst != null) loseBurst.Play();
         if (stick != null) stick.inputEnabled = false;
         if (loseMessage != null) loseMessage.SetActive(true);
+
+        // The burst and the message above land immediately, so this hold isn't
+        // dead air — it just keeps the game over screen's own sound off the top
+        // of the hole sound.
+        if (screenDelay > 0f) Tween.Delay(this, screenDelay, self => self.DeclareLoss());
+        else DeclareLoss();
+    }
+
+    void DeclareLoss()
+    {
         if (gameManager != null) gameManager.SetState(GameState.Lose);
     }
 }

@@ -13,6 +13,8 @@ public class GameOverController : MonoBehaviour
 
     void Start()
     {
+        if (AudioManager.Instance != null) AudioManager.Instance.PlayLoseScreen();
+
         if (backdrop != null)
         {
             backdrop.alpha = 0f;
@@ -27,6 +29,7 @@ public class GameOverController : MonoBehaviour
 
     void Retry()
     {
+        AudioManager.PlayClick();
         if (GameManager.Instance != null) GameManager.Instance.SetState(GameState.Playing);
         SceneLoader.Instance.RetryLevel();
     }
