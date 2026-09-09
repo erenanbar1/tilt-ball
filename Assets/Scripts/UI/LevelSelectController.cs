@@ -15,8 +15,10 @@ public class LevelSelectController : MonoBehaviour
     public RectTransform content;
 
     [Header("Node art")]
-    public Sprite unlockedSprite;
-    public Sprite lockedSprite;
+    // One neutral sprite for every node — locked vs. reached vs. current is all
+    // colour tint from here down, the same trick the trail already used, rather
+    // than separate art per state.
+    public Sprite nodeSprite;
     public Sprite glowSprite;
     public Sprite pathSprite;
     public Font labelFont;
@@ -30,9 +32,18 @@ public class LevelSelectController : MonoBehaviour
     public float glowScale = 1.7f;
 
     [Header("Trail colours")]
-    public Color pathReachedColor = new Color(1f, 0.72f, 0.25f, 1f);
-    public Color pathLockedColor = new Color(0.18f, 0.18f, 0.24f, 1f);
-    public Color lockedLabelColor = new Color(0.45f, 0.45f, 0.55f, 1f);
+    // White to match the new node art's own colour rather than tinting it gold —
+    // the sprite is already the finished look, this just dims the unreached half.
+    public Color pathReachedColor = Color.white;
+    public Color pathLockedColor = new Color(0.4f, 0.4f, 0.46f, 1f);
+
+    [Header("Node colours")]
+    public Color unlockedNodeColor = Color.white;
+    public Color lockedNodeColor = new Color(0.4f, 0.4f, 0.46f, 1f);
+    // Dark on the unlocked node's near-white art rather than the old gold's
+    // white-on-gold — white numerals would vanish against this lighter sprite.
+    public Color unlockedLabelColor = new Color(0.18f, 0.18f, 0.24f, 1f);
+    public Color lockedLabelColor = new Color(0.6f, 0.6f, 0.68f, 1f);
 
     [Header("Side quest")]
     public Button tallButton;
@@ -111,7 +122,8 @@ public class LevelSelectController : MonoBehaviour
             gr.anchoredPosition = new Vector2(0f, y);
         }
 
-        var img = NewImage("Level_" + (index + 1), unlocked ? unlockedSprite : lockedSprite, content);
+        var img = NewImage("Level_" + (index + 1), nodeSprite, content);
+        img.color = unlocked ? unlockedNodeColor : lockedNodeColor;
         var rt = img.rectTransform;
         rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0f);
         rt.pivot = new Vector2(0.5f, 0.5f);
@@ -131,7 +143,7 @@ public class LevelSelectController : MonoBehaviour
         text.fontSize = Mathf.RoundToInt(nodeSize * 0.42f);
         text.fontStyle = FontStyle.Bold;
         text.alignment = TextAnchor.MiddleCenter;
-        text.color = unlocked ? Color.white : lockedLabelColor;
+        text.color = unlocked ? unlockedLabelColor : lockedLabelColor;
         text.raycastTarget = false;
 
         var button = img.gameObject.AddComponent<Button>();

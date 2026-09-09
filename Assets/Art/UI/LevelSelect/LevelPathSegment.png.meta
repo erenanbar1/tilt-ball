@@ -1,10 +1,22 @@
 fileFormatVersion: 2
-guid: 6ce25b78192b84773931ba694dc2830f
+guid: f4a3cab7329c347faaafe4b4cbef69fe
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 5379165631310685968
-    second: LevelNode_Locked_0
+      213: 8023358497003118880
+    second: LevelPathSegment_0
+  - first:
+      213: 6143732939708298788
+    second: LevelPathSegment_1
+  - first:
+      213: -4948604882948391687
+    second: LevelPathSegment_2
+  - first:
+      213: 6202099275010595482
+    second: LevelPathSegment_3
+  - first:
+      213: -7208346129697276209
+    second: LevelPathSegment_4
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -75,7 +87,7 @@ TextureImporter:
     maxTextureSize: 2048
     resizeAlgorithm: 0
     textureFormat: -1
-    textureCompression: 0
+    textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
     allowsAlphaSplitting: 0
@@ -139,13 +151,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: LevelNode_Locked_0
+      name: LevelPathSegment_0
       rect:
         serializedVersion: 2
-        x: 7
-        y: 7
-        width: 242
-        height: 242
+        x: 0
+        y: 0
+        width: 118
+        height: 1434
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -154,8 +166,96 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 017634244a2a6aa40800000000000000
-      internalID: 5379165631310685968
+      spriteID: 021ab7f1b02b85f60800000000000000
+      internalID: 8023358497003118880
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LevelPathSegment_1
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 1400
+        width: 22
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 426fd2ace8ce24550800000000000000
+      internalID: 6143732939708298788
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LevelPathSegment_2
+      rect:
+        serializedVersion: 2
+        x: 7
+        y: 1424
+        width: 27
+        height: 10
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9fcf81ae316035bb0800000000000000
+      internalID: -4948604882948391687
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LevelPathSegment_3
+      rect:
+        serializedVersion: 2
+        x: 87
+        y: 1412
+        width: 25
+        height: 22
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a9ad6b43e68421650800000000000000
+      internalID: 6202099275010595482
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: LevelPathSegment_4
+      rect:
+        serializedVersion: 2
+        x: 111
+        y: 1413
+        width: 7
+        height: 21
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fcef451f26fc6fb90800000000000000
+      internalID: -7208346129697276209
       vertices: []
       indices: 
       edges: []
@@ -174,7 +274,11 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      LevelNode_Locked_0: 5379165631310685968
+      LevelPathSegment_0: 8023358497003118880
+      LevelPathSegment_1: 6143732939708298788
+      LevelPathSegment_2: -4948604882948391687
+      LevelPathSegment_3: 6202099275010595482
+      LevelPathSegment_4: -7208346129697276209
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
