@@ -1,8 +1,9 @@
 # Tilt Ball — Architecture
 
 This document describes how the shipping game is put together. The live game lives entirely under
-`Assets/Scenes/end-to-end/`; `Assets/Scenes/_Archive/` and `Assets/Scenes/TiltBallScene.unity` are earlier
-layouts kept for reference and are **not** part of the current architecture (see [Cleanup history](#cleanup-history)).
+`Assets/Scenes/end-to-end/` — there is no other scene folder in the project. Earlier versions of this document
+described `Assets/Scenes/_Archive/` and `Assets/Scenes/TiltBallScene.unity` as legacy layouts kept for reference;
+both have since been deleted outright (see [Cleanup history](#cleanup-history)).
 
 Engine: Unity `6000.3.12f1`, Universal Render Pipeline, new Input System, 2D physics.
 Third-party: [PrimeTween](https://github.com/KyryloKuzyk/PrimeTween) (via OpenUPM) drives every animation in the game — no `Animator`/coroutine tweening is used.
@@ -14,17 +15,21 @@ only in which gameplay scene loads, which level list is read, and which unlock t
 ## 1. Scene graph and navigation
 
 The game is one persistent scene plus a set of additively-swapped "screen" scenes — never a single-scene reload.
+Only four scenes are ever swapped in as the **main** scene: MainMenu, LevelSelect, Gameplay, GameplayTall.
+PauseMenu, WinScreen and GameOver are a different kind of scene entirely — each is loaded additively **on top of**
+whichever main scene (in practice always Gameplay/GameplayTall) is still running, and none of the three carries a
+`Main Camera` or `EventSystem` of its own; they rely on the scene underneath still being loaded and rendering.
 
 ```mermaid
 flowchart TD
     Bootstrap["Bootstrap<br/>(loaded once, never unloaded)"] -->|BootstrapRunner.Start| MainMenu
-    MainMenu -->|Play → mode Classic| LevelSelect
-    MainMenu -->|Tall → mode Tall| LevelSelect
-    LevelSelect -->|pick unlocked level| GP["Gameplay or GameplayTall<br/>(SceneLoader picks by mode)"]
-    GP -->|GameManager: Win| WinScreen
-    GP -->|GameManager: Lose| GameOver
-    WinScreen -->|Next Level| GP
-    GameOver -->|Retry| GP
+    MainMenu -->|Play| LevelSelect
+    LevelSelect -->|pick unlocked node on the Classic path| GP["Gameplay or GameplayTall<br/>(SceneLoader picks by mode)"]
+    LevelSelect -->|Tall side-quest button → mode Tall| GP
+    GP -.->|GameManager: Win, additive overlay| WinScreen
+    GP -.->|GameManager: Lose, additive overlay| GameOver
+    WinScreen -->|Next Level, swaps Gameplay away and back| GP
+    GameOver -->|Retry, swaps Gameplay away and back| GP
     GP -.->|Pause button, additive overlay| PauseMenu
     PauseMenu -.->|Resume| GP
     PauseMenu -->|Main Menu| MainMenu
@@ -32,27 +37,37 @@ flowchart TD
 ```
 
 **`SceneLoader`** (in Bootstrap) is the *only* script allowed to call `SceneManager` APIs — every button handler
-routes through `SceneLoader.Instance` (or, for pause, through `GameManager`; see below) instead. Its
-`SwapTo(name)` unloads whatever "main" scene is currently up and loads the new one additively, so Bootstrap (and
-anything else additive) is never touched. `PauseMenu` is the one exception to the swap model: it's loaded
-*additively on top of* the gameplay scene rather than swapped in as a main scene — which is also why the PauseMenu
-scene has no `Main Camera`/`EventSystem` of its own; it relies on the gameplay scene's still being loaded
-underneath it.
+routes through `SceneLoader.Instance` (or, for pause/win/lose, through `GameManager`; see below) instead. Its
+`SwapTo(name)` unloads whatever main scene is currently up and loads the new one additively, so Bootstrap (and
+anything else additive) is never touched. It backs the four calls callers actually reach for — `GoToMainMenu()`,
+`GoToLevelSelect()`, `LoadGameplay()` and `RetryLevel()` — the last two routed through `ActiveGameplayScene()` so
+they pick Gameplay or GameplayTall by `GameManager.CurrentMode` without the caller knowing a second mode exists.
+
+`PauseMenu`, `WinScreen` and `GameOver` are the exceptions to the swap model, and all follow the same pattern:
+loaded additively over whatever's still running rather than swapped in as a main scene of its own.
+`WinScreenController` and `GameOverController` bind their `Canvas` to `Camera.main` in `Awake` (there's no camera
+of their own to bind to) and fade in a translucent `CanvasGroup` backdrop over the still-visible level rather than
+clearing to a blank camera — a second Base camera stacked on top runs into URP's camera-stacking rules, where
+"Don't Clear" isn't a reliable see-through the way it was in the built-in pipeline. Gameplay itself is **not**
+unloaded when Win/Lose fires: `SceneLoader` tracks the open result scene in `resultScreenScene` and only unloads it
+(and swaps Gameplay away) once the player actually leaves — `WinScreenController.NextLevel`,
+`GameOverController.Retry`, or backing out to the main menu/level select all call `UnloadResultScreenIfAny()`
+before loading whatever's next.
 
 Pause is driven through `GameManager`, the same way Win/Lose are: `GameplayHUD`'s pause button calls
 `GameManager.SetState(GameState.Pause)`; `SceneLoader.HandleStateChanged` reacts to that (and to a transition
-back to `GameState.Playing`) by loading/unloading the PauseMenu scene additively and toggling `Time.timeScale`.
-`GameManager` itself never touches scenes or timescale — it only holds state and fires `OnStateChanged`;
-`SceneLoader` is still the sole place scene/timescale mechanics happen.
+back to `GameState.Playing`, which every way of leaving Pause sets) by loading/unloading the PauseMenu scene
+additively and toggling `Time.timeScale`. `GameManager` itself never touches scenes or timescale — it only holds
+state and fires `OnStateChanged`; `SceneLoader` is still the sole place scene/timescale mechanics happen.
 
-Each of the six "main" scenes (MainMenu, LevelSelect, Gameplay, GameplayTall, WinScreen, GameOver) is
-self-contained: its own `Main Camera`, `EventSystem`, `Canvas`, and one small controller script that wires up that
-scene's buttons.
+Only the four main scenes are self-contained in the classic sense: each has its own `Main Camera`, `EventSystem`,
+`Canvas`, and one small controller script that wires up that scene's buttons.
 
 Which gameplay scene loads is decided in one place — `SceneLoader.ActiveGameplayScene()`, consulted by both
 `LoadGameplay()` and `RetryLevel()`. Because every navigation path already went through those two methods, picking
-a level, Next Level, Retry and the pause menu's Restart all follow the current mode without any of them knowing a
-second mode exists.
+a level, Next Level and Retry all follow the current mode without any of them knowing a second mode exists. The
+pause menu no longer has a restart/retry button of its own (see [Cleanup history](#cleanup-history)) — its only
+two buttons are Resume and Main Menu.
 
 ## 2. Bootstrap and the persistent singletons
 
@@ -61,14 +76,15 @@ second mode exists.
 
 | Script | Responsibility |
 |---|---|
-| `AudioManager` | One looping `AudioSource` for music, one one-shot source for SFX, so SFX never interrupts music. Also owns menu-click sound and win/lose ducking (below). |
-| `SceneLoader` | Owns all scene transitions (§1), the pause overlay, and the mode→gameplay-scene choice. |
+| `AudioManager` | One looping `AudioSource` for music, one one-shot source for SFX, so SFX never interrupts music. Also owns menu-click sound, win/lose ducking (below), and the persisted music/SFX on-off toggles (§6). |
+| `SceneLoader` | Owns all scene transitions (§1), the pause/win/lose overlays, and the mode→gameplay-scene choice. |
 | `GameManager` | Tracks `CurrentState` (`Playing/Win/Lose/Pause`), `CurrentMode` (`Classic/Tall`), the selected `currentLevel`, both level lists (`allLevels`/`tallLevels`), and fires `OnStateChanged`. Holds no obstacle/geometry knowledge, and never touches scenes or `Time.timeScale` itself — purely run state. |
 | `SaveManager` | Persists one unlock index **per mode** via `PlayerPrefs`; each monotonically increasing. |
 | `BootstrapRunner` | The handoff: in `Start()` (guaranteed to run after every other object's `Awake`) calls `SceneLoader.Instance.GoToMainMenu()`. |
 
 `SceneLoader` subscribes to `GameManager.OnStateChanged` in its own `Start()` and reacts to `Win`/`Lose` by
-swapping to WinScreen/GameOver — this is the one place gameplay outcome and scene navigation are connected.
+layering WinScreen/GameOver over the running gameplay scene (§1) — this is the one place gameplay outcome and
+scene navigation are connected.
 
 `AudioManager` subscribes to the same event to know when a run returns to `Playing` (Retry and Next Level both
 set that state before loading their next scene), which is its cue to fade the music back up. The four outcome
@@ -78,9 +94,9 @@ sounds (`winHole`, `winScreen`, `loseHole`, `loseScreen`) are triggered directly
 state-change subscription, since by the time a `Win`/`Lose` state actually lands the ball has already fallen. The
 two hole sounds also duck the music (down over `duckDuration`, back up over `restoreDuration`, both driven by
 PrimeTween on unscaled time so the pause menu's `Time.timeScale = 0` can't stall a fade partway); the screen
-sounds land once the theme is already ducked. Every menu button in the game (Play, level buttons, pause/resume/
-restart/main-menu, retry, next level, back) calls the static `AudioManager.PlayClick()` — the tilt controls,
-which are held rather than clicked, deliberately don't.
+sounds land once the theme is already ducked. Every menu button in the game — level nodes, the Tall side-quest
+button, pause/resume/main-menu, retry, next level, back, and the settings/audio-toggle buttons alike — calls the
+static `AudioManager.PlayClick()`; the tilt controls, which are held rather than clicked, deliberately don't.
 
 A static-utility sixth piece, **`PerformanceSettings`**, runs via
 `[RuntimeInitializeOnLoadMethod(BeforeSceneLoad)]` before Bootstrap even loads: it pins `targetFrameRate = 60`,
@@ -100,7 +116,7 @@ now-removed `LevelLoader`, no longer applies — see [Cleanup history](#cleanup-
 
 `LevelConfig` (`ScriptableObject`, `Assets/Levels/Configs/`) holds `levelId`, `levelIndex`, and an
 `obstaclesPrefab`, plus three fields that describe a tall level's climb (§8): `climbHeight`, `levelFloorY` and
-`ceilingPadding`. Twelve configs exist — `Level_01`…`Level_10` and `lvl11` for Classic, `Tall_01` for Tall.
+`ceilingPadding`. Eleven configs exist — `Level_01`…`Level_10` for Classic, `Tall_01` for Tall.
 `ballStartPosition`, `winningHolePosition` and `timeLimit` are placeholder fields — not read by anything, since
 ball/hole placement and timing stay scene-authored in both modes.
 
@@ -108,17 +124,23 @@ ball/hole placement and timing stay scene-authored in both modes.
 makes every pre-existing Classic config work untouched: they simply don't carry the field, so they read as 0 and
 the geometry pass below early-outs.
 
-Flow: `LevelSelectController` (in the LevelSelect scene) builds one button per entry in
-`GameManager.CurrentLevels` — the active mode's list — disabling any beyond `SaveManager.IsUnlocked(index)`.
-Picking one sets `GameManager.currentLevel` and calls `SceneLoader.LoadGameplay()`. In whichever gameplay scene
-loads, **`LevelController`** reads `GameManager.currentLevel` in `Awake`, applies the climb geometry, then
-instantiates its `obstaclesPrefab` under an `ObstaclesRoot` transform. On win, `WinScreenController` advances to
-`CurrentLevels[index + 1]` (looping back to level 0 at the end) and calls `SaveManager.UnlockLevel(nextIndex)`
-before loading gameplay again — so finishing a Tall level leads to the next Tall level, not back into Classic.
+Flow: `LevelSelectController` (in the LevelSelect scene) procedurally builds a single vertical **scrolling path**
+for the Classic list (`GameManager.allLevels`) — one node per level, level 1 at the bottom, connected by a lit
+trail whose reached/locked segments are colored from `SaveManager.HighestUnlocked(Classic)`; the node the player is
+actually up to gets a glow behind it, and the scroll view opens already centered on it rather than at level 1.
+Locked nodes render dimmed and are non-interactable. Tapping an unlocked node sets `GameManager.currentLevel`,
+explicitly calls `GameManager.SetMode(GameMode.Classic)` (LevelSelect no longer assumes a mode was chosen before
+it loaded — see §5), and calls `SceneLoader.LoadGameplay()`. **Tall doesn't appear on the path at all** — see §5's
+"side quest" button, which sets `GameMode.Tall` and jumps straight into whichever Tall level `SaveManager` has
+already unlocked, with no per-level picker of its own. In whichever gameplay scene loads, **`LevelController`**
+reads `GameManager.currentLevel` in `Awake`, applies the climb geometry, then instantiates its `obstaclesPrefab`
+under an `ObstaclesRoot` transform. On win, `WinScreenController` advances to `CurrentLevels[index + 1]` (looping
+back to level 0 at the end) and calls `SaveManager.UnlockLevel(nextIndex)` before loading gameplay again — so
+finishing a Tall level leads to the next Tall level, not back into Classic.
 
 Obstacle prefabs live in `Assets/Levels/ObstaclePrefabs/` (`Level_02_Obstacles.prefab` … `Level_10_Obstacles.prefab`,
-plus one for level 11 whose asset name got mangled to `Level_!1.prefab`, and `Tall_01_Obstacles.prefab`); Level 1
-has none, matching the `obstaclesPrefab == null` early-out in `LevelController`.
+plus `Tall_01_Obstacles.prefab`); Level 1 has none, matching the `obstaclesPrefab == null` early-out in
+`LevelController`.
 
 ## 4. Gameplay mechanics
 
@@ -176,7 +198,9 @@ loop + procedural shadow for the mascot).
 `BackgroundFitter` re-centres on the camera every `LateUpdate`, which in a Tall level means the background tracks
 the scroll and so reads as static during the climb. The pulleys drawing closer and the holes passing by carry the
 sense of ascent instead; if that ever stops being enough, the fix is to disable the component in the tall scene
-and scale one sprite to the whole column.
+and scale one sprite to the whole column. It also re-fits automatically whenever `CameraAspectFit` (below) grows
+a camera's `orthographicSize` on a narrow device, since it reads the camera's current size/aspect live rather than
+caching it once.
 
 ## 5. UI layer
 
@@ -193,33 +217,90 @@ Two shared utilities back every screen:
 - **`SafeArea`** — adjusts a `RectTransform`'s anchors to `Screen.safeArea` every frame, so notches, the Dynamic
   Island, and iOS slide-over/split-view are handled live rather than once at launch.
 
+### Responsive camera fit
+
+**`CameraAspectFit`** (`[DefaultExecutionOrder(-1000)]`, one per gameplay/menu camera) fits that camera's world
+content to the device the way a fixed-design mobile layout is meant to: the visible world **width** is held
+constant on every device — `designOrthographicSize * profile.designAspect`, captured from whatever the scene's
+camera was authored with — so nothing at the design's horizontal edges (the stick, the pulleys) can ever be
+cropped, on any aspect ratio. Height is what's allowed to vary between devices:
+- Device aspect ≥ the design's (tablets, squarer screens): `orthographicSize` stays at its authored value and the
+  viewport **width** is capped to match the design aspect at full height, centered — pillarboxed sides.
+- Device aspect < the design's (ordinary tall phones, and very elongated ones like a folding phone's cover
+  screen): the viewport fills edge-to-edge, and `orthographicSize` grows just enough to keep the same world width
+  visible — the extra room lands as vertical headroom, never as a horizontal crop.
+
+It checks `Screen.width`/`Screen.height` every frame (cheap; the fit math only reruns on an actual change) so a
+live resize — Editor window resizing, Android split-screen, a foldable's fold state — is picked up without a
+scene reload. Changing `orthographicSize` only changes how much of the world the camera shows; it never rescales
+any `Transform`, so `Rigidbody2D` physics (gravity, the stick's tuned speeds, rope/joint distances) stay exactly
+as authored regardless of which branch is active. It also creates and owns a second `LetterboxBackdrop` camera
+(solid black, `cullingMask = 0`, `depth` one below the main camera) itself, since a camera's own Clear Flags only
+clear its own viewport rect — without a backdrop camera, whatever the GPU last drew would show through outside
+the game's rect. **`ScreenFitProfile`** is the shared `ScriptableObject` every scene's `CameraAspectFit`
+references so the letterbox behaves identically everywhere; its one field, `designAspect`, defaults to `1080/1920`
+to match the project's `CanvasScaler` reference resolution. Gameplay's Canvas is expected to be Screen Space -
+Camera bound to this same camera, so UI and world share the rect and can never separate on any aspect ratio.
+
+**`PinnedToView`** (`[ExecuteAlways]`) pins an object to a fixed fraction of the camera's *current* view — `(0.5,
+0.5)` is dead centre, `(0.5, 0)` bottom-centre, the same convention as a UI anchor — rather than a fixed world
+position, so it doesn't drift when `CameraAspectFit` grows a camera's `orthographicSize` on a narrower device.
+Since `BackgroundFitter` always stretches the background to exactly fill that same view, pinning to a view
+fraction here is equivalent to pinning to a fixed spot on the background art itself.
+
 Gameplay's pause button is `Assets/Prefabs/PauseButton.prefab` — a plain `Button`/`Image`, wired to
 `GameplayHUD.pauseButton` in the inspector — sitting in front of a decorative `TopBar` image (`HUD_TopBar.png`)
-on the Gameplay canvas. `Assets/Art/Settings_Button.png` was added alongside it but isn't placed in any scene or
-referenced by any script yet — there is no settings menu.
+on the Gameplay canvas.
 
-The Main Menu carries two buttons, `PlayButton` and `TallButton`, both routed through `MainMenuFlow.StartMode`,
-which sets the mode and then goes to LevelSelect. **`TallButton` is still placeholder art**: it reuses
-`Button_Continue.png` with a blue tint purely so the two are told apart, since no artwork for a second mode exists
-yet.
+### Settings and audio toggles
+
+**`SettingsPanelController`** is a self-contained settings overlay: some button elsewhere in the scene calls
+`Open()`, tapping the backdrop calls `Close()`. It's reused as-is by `MainMenuFlow.settingsButton` and
+`LevelSelectController.settingsButton` — screens with no `GameState` of their own, so this is a plain `SetActive`
+toggle rather than the pause menu's route through `GameManager`'s Pause state and a whole additive scene. The root
+object stays active always (`Awake` needs to run to wire the backdrop); only the overlay child — backdrop plus
+the toggle icons — is what's actually hidden until opened.
+
+**`AudioToggleButton`** is one component, reused for both the music and SFX toggles (`Kind.Music`/`Kind.Sfx`): it
+calls `AudioManager.Instance.ToggleMusic()`/`ToggleSfx()` and swaps its own `Image.sprite` between an on/off pair
+to match `AudioManager`'s current state, refreshing both on click and on `Start()` so it always opens showing
+whatever the player last set rather than a default. The pause menu places these two buttons directly, since it's
+already an overlay; `MainMenuFlow`/`LevelSelectController` instead put them inside the `SettingsPanelController`
+overlay described above, since neither of those screens is an overlay of its own.
+
+### Level select and the Tall side quest
+
+The Main Menu carries a single `PlayButton`, routed through `MainMenuFlow.Play` straight to LevelSelect — there is
+no mode choice on this screen; both modes are chosen on the next one. `LevelSelectController` renders the Classic
+list as a single vertical path that scrolls (§3) and additionally carries a `tallButton` fixed to the bottom-right
+corner as a **side quest**, unaffected by the path's scrolling underneath it. Tapping it (`PlayTall`) sets
+`GameMode.Tall`, resumes at `SaveManager.HighestUnlocked(Tall)` (clamped into range), and loads gameplay the same
+way a Classic node does — there's no visible level list for Tall at all, since only one Tall level (`Tall_01`)
+exists today.
 
 ## 6. Persistence
 
-The only persisted state is two integers, one unlock index per mode, each stored in `PlayerPrefs` and only ever
-raised (finishing an earlier level again can't lock out later ones):
+The only persisted state is `PlayerPrefs`, all read once at `Awake` (not on demand) so nothing depends on load
+order between the two managers that own it:
 
-| Mode | `PlayerPrefs` key |
-|---|---|
-| Classic | `HighestUnlockedLevelIndex` |
-| Tall | `Tall_HighestUnlockedLevelIndex` |
+| State | `PlayerPrefs` key | Owner |
+|---|---|---|
+| Classic unlock index | `HighestUnlockedLevelIndex` | `SaveManager` |
+| Tall unlock index | `Tall_HighestUnlockedLevelIndex` | `SaveManager` |
+| Music enabled | `MusicEnabled` | `AudioManager` |
+| SFX enabled | `SfxEnabled` | `AudioManager` |
 
-Classic's key is spelled exactly as it always was — renaming it would read back zero and silently reset every
+The two unlock indices are only ever raised (finishing an earlier level again can't lock out later ones); the
+Classic key is spelled exactly as it always was — renaming it would read back zero and silently reset every
 existing player's progress. `SaveManager` loads both in `Awake` so it never depends on `GameManager` having woken
 first, and the one-argument `IsUnlocked`/`UnlockLevel` resolve the mode themselves (falling back to Classic if
 `GameManager` isn't up yet), which is why no call site had to learn about modes. Two-argument overloads exist for
 addressing a specific mode's track directly.
 
-There is no save data for settings, timings, or scores.
+The two audio toggles default to `true` and mute via `AudioSource.mute` rather than by zeroing volume, so they
+can't collide with the win/lose duck/restore tween, which already owns the volume field.
+
+There is no save data for timings or scores.
 
 ## 7. Build & release tooling
 
@@ -238,7 +319,8 @@ for iOS builds only:
 A Tall level is the same rig playing out over a taller column. **The stick keeps its size and its mechanic** —
 only its vertical *travel range* grows, so the climb runs several screens instead of one, and the camera scrolls
 up to follow the rig. Nothing in `StickController`, `BallOnPlatformController`, `WinTrigger` or `LoseTrigger`
-changed to support this; they were already written in world space with no notion of the camera.
+changed to support this; they were already written in world space with no notion of the camera. It's reached
+through LevelSelect's side-quest button rather than a level list of its own — see §5.
 
 `GameplayTall.unity` is a duplicate of `Gameplay.unity` with two differences: `CameraClimbFollow` on its
 `Main Camera`, and `LevelController`'s four geometry references wired up (they stay empty in the Classic scene,
@@ -291,16 +373,26 @@ exactly like a Classic level: arriving at the summit.
 
 ## Cleanup history
 
-The following dead code was identified while writing this document (confirmed unused by GUID, not just by name)
-and has since been removed:
+The following dead code was identified while writing earlier versions of this document (confirmed unused by GUID,
+not just by name) and has since been removed:
 
 - **`LevelLoader`** — duplicated `LevelController`'s obstacle-spawning job with its own, disconnected progression
-  system. It was referenced only by `Assets/Scenes/TiltBallScene.unity` and `Assets/Scenes/_Archive/Level.unity`,
-  both outside `Scenes/end-to-end/`. Those two archived scenes now show a missing-script warning on that
-  component if opened in the editor — expected, since they're legacy layouts, not the shipping game.
+  system. It was referenced only by `Assets/Scenes/TiltBallScene.unity` and `Assets/Scenes/_Archive/Level.unity`.
+  Both of those archived scenes, along with the rest of `_Archive/`, have since been deleted from the project
+  entirely — they no longer exist on disk at all.
 - **`TouchTiltControls`** — an unreferenced alternate implementation of touch tilt input; `TouchControls.prefab`
   uses `TouchTiltButton` instead.
 - **`Assets/Physics/BouncyBall.physicsMaterial2D`** — unreferenced by any prefab, scene, or asset.
+- **Level 11** — the `lvl11` `LevelConfig` and its mangled-named `Level_!1.prefab` obstacle prefab are gone; the
+  game currently ships ten Classic levels, `Level_01`…`Level_10`.
+- **MainMenu's mode picker** — `MainMenuFlow` used to carry a `TallButton` next to `PlayButton`, both routed
+  through a `StartMode` method that set the mode before handing off to LevelSelect. Neither the button nor the
+  method exists anymore: MainMenu now has one `PlayButton`, and LevelSelect decides the mode itself (§3, §5) via
+  its Classic path nodes or its Tall side-quest button. The `Button_Continue.png`-with-blue-tint placeholder art
+  this used to note is gone too — LevelSelect's Tall entry point now has dedicated art
+  (`Assets/Art/UI/LevelSelect/LevelNode_Tall.png`).
+- **Pause menu's restart button** — `PauseController` now wires only Resume and Main Menu; retrying a level from
+  inside a run happens via Game Over's Retry button instead.
 
-`GameState.Pause` was briefly removed in this same pass (it was unused at the time) and then reinstated once
+`GameState.Pause` was briefly removed in an earlier pass (it was unused at the time) and then reinstated once
 pausing was rerouted through `GameManager` — see §2.
