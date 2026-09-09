@@ -1150,7 +1150,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2867443179410121084, guid: 5c477889c632b43579a2a31e965dec90, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 23.152
+      value: 26.108
       objectReference: {fileID: 0}
     - target: {fileID: 2867443179410121084, guid: 5c477889c632b43579a2a31e965dec90, type: 3}
       propertyPath: m_LocalPosition.y
@@ -1198,7 +1198,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3875829119214191114, guid: 5c477889c632b43579a2a31e965dec90, type: 3}
       propertyPath: endPointOffset.x
-      value: 0.41748
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3875829119214191114, guid: 5c477889c632b43579a2a31e965dec90, type: 3}
       propertyPath: startPointOffset.x
@@ -1226,7 +1226,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5660372115172798544, guid: 5c477889c632b43579a2a31e965dec90, type: 3}
       propertyPath: m_Positions.Array.data[1].x
-      value: -3.6847057
+      value: -3.6847308
       objectReference: {fileID: 0}
     - target: {fileID: 5660372115172798544, guid: 5c477889c632b43579a2a31e965dec90, type: 3}
       propertyPath: m_Positions.Array.data[1].y
@@ -1234,11 +1234,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6029012693163445195, guid: 5c477889c632b43579a2a31e965dec90, type: 3}
       propertyPath: stickHalfWidth
-      value: 3.35
+      value: 3.6875
       objectReference: {fileID: 0}
     - target: {fileID: 6406899287350318158, guid: 5c477889c632b43579a2a31e965dec90, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0.2559321
+      value: -0.6706071
       objectReference: {fileID: 0}
     - target: {fileID: 6406899287350318158, guid: 5c477889c632b43579a2a31e965dec90, type: 3}
       propertyPath: m_LocalPosition.y
@@ -1262,7 +1262,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6641139290665139663, guid: 5c477889c632b43579a2a31e965dec90, type: 3}
       propertyPath: m_Positions.Array.data[1].x
-      value: 3.6875358
+      value: 3.6875699
       objectReference: {fileID: 0}
     - target: {fileID: 6641139290665139663, guid: 5c477889c632b43579a2a31e965dec90, type: 3}
       propertyPath: m_Positions.Array.data[1].y
@@ -1270,7 +1270,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6779147757079706706, guid: 5c477889c632b43579a2a31e965dec90, type: 3}
       propertyPath: endPointOffset.x
-      value: -0.41465
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6779147757079706706, guid: 5c477889c632b43579a2a31e965dec90, type: 3}
       propertyPath: startPointOffset.x
@@ -1278,7 +1278,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8090232055949090474, guid: 5c477889c632b43579a2a31e965dec90, type: 3}
       propertyPath: m_Size.x
-      value: 23.0548
+      value: 25.3825
       objectReference: {fileID: 0}
     - target: {fileID: 8090232055949090474, guid: 5c477889c632b43579a2a31e965dec90, type: 3}
       propertyPath: m_SpriteTilingProperty.drawMode
@@ -1286,7 +1286,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8090232055949090474, guid: 5c477889c632b43579a2a31e965dec90, type: 3}
       propertyPath: m_SpriteTilingProperty.newSize.x
-      value: 47.4326
+      value: 52.2323
       objectReference: {fileID: 0}
     - target: {fileID: 8090232055949090474, guid: 5c477889c632b43579a2a31e965dec90, type: 3}
       propertyPath: m_SpriteTilingProperty.newSize.y
@@ -1294,7 +1294,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8344588451446899817, guid: 5c477889c632b43579a2a31e965dec90, type: 3}
       propertyPath: m_Size.x
-      value: 47.4326
+      value: 52.2323
       objectReference: {fileID: 0}
     - target: {fileID: 8344588451446899817, guid: 5c477889c632b43579a2a31e965dec90, type: 3}
       propertyPath: m_Size.y
@@ -1310,7 +1310,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8971738961472862834, guid: 5c477889c632b43579a2a31e965dec90, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -23.152
+      value: -26.0879
       objectReference: {fileID: 0}
     - target: {fileID: 8971738961472862834, guid: 5c477889c632b43579a2a31e965dec90, type: 3}
       propertyPath: m_LocalPosition.y
