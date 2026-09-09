@@ -252,7 +252,6 @@ GameObject:
   - component: {fileID: 7898816236458769588}
   - component: {fileID: 8252836851380286047}
   - component: {fileID: 1123693980711135011}
-  - component: {fileID: 106350267046104059}
   m_Layer: 0
   m_Name: LevelUI
   m_TagString: Untagged
@@ -344,31 +343,6 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 4294967295
---- !u!114 &106350267046104059
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5540197065810382828}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9b709c5ddc0644d49b8f29cf147ea4bc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::LevelFlow
-  gameManager: {fileID: 0}
-  levelLoader: {fileID: 0}
-  winPanel: {fileID: 8942148469790220502}
-  losePanel: {fileID: 884635601099018301}
-  loopAfterLastLevel: 1
-  backdropFadeDuration: 0.22
-  titleDropDistance: 520
-  titleDropDuration: 0.55
-  titleTiltDegrees: 7
-  buttonDelay: 0.26
-  buttonPopDuration: 0.42
-  buttonPulseScale: 1.05
-  buttonPulseDuration: 0.9
 --- !u!1 &5700601732310142478
 GameObject:
   m_ObjectHideFlags: 0
@@ -605,7 +579,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 106350267046104059}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: LevelFlow, Assembly-CSharp
         m_MethodName: Replay
         m_Mode: 0
@@ -737,7 +711,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 106350267046104059}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: LevelFlow, Assembly-CSharp
         m_MethodName: Continue
         m_Mode: 0
