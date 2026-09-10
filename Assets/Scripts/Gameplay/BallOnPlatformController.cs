@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 // Constrains the Ball to exactly one degree of freedom along the Platform,
@@ -35,6 +36,33 @@ public class BallOnPlatformController : MonoBehaviour
     [Header("Gameplay state")]
     public float distanceAlongPlatform = -1f; // < 0 = start at the platform's midpoint
     public float velocityAlongPlatform;
+
+    // ---- External influence (obstacles / boosters) ------------------------
+    // Everything an obstacle may do to the Ball goes through this small API so
+    // the 1-DOF simulation above stays the single owner of the Ball's motion:
+    //   AddImpulse        — instant change of along-platform velocity (bumpers, shield knock-back)
+    //   AddAcceleration   — along-platform acceleration for the current physics step (wind, magnets)
+    //   RegisterSurface   — multiply roll acceleration / damping half-life while the Ball is on a patch (ice)
+    // Directions are along Tangent: positive = toward the stick's right end.
+    private float pendingAcceleration;
+    private readonly Dictionary<Object, Vector2> surfaceModifiers = new Dictionary<Object, Vector2>(); // x = accel mul, y = damping mul
+
+    public Vector2 Tangent { get; private set; } = Vector2.right;
+    public float PlatformLength { get; private set; }
+    public float BallRadius => ballRadius;
+    public float VelocityAlongPlatform => velocityAlongPlatform;
+
+    public void AddImpulse(float deltaVelocity) => velocityAlongPlatform += deltaVelocity;
+    public void SetVelocity(float velocity) => velocityAlongPlatform = velocity;
+    public void AddAcceleration(float acceleration) => pendingAcceleration += acceleration;
+
+    public void RegisterSurface(Object key, float accelerationMultiplier, float dampingHalfLifeMultiplier)
+        => surfaceModifiers[key] = new Vector2(accelerationMultiplier, dampingHalfLifeMultiplier);
+    public void UnregisterSurface(Object key) => surfaceModifiers.Remove(key);
+
+    // Where a world point sits relative to the Ball, measured along the stick:
+    // negative = toward the left end, positive = toward the right end.
+    public float SignedOffsetAlong(Vector2 worldPoint) => Vector2.Dot(worldPoint - (Vector2)transform.position, Tangent);
 
     private Rigidbody2D rb;
     private CircleCollider2D ballCollider;
@@ -129,11 +157,19 @@ public class BallOnPlatformController : MonoBehaviour
 
         SeedIfNeeded(platformLength);
 
+        Tangent = platformVector / platformLength;
+        PlatformLength = platformLength;
+
+        float accelMul = 1f, dampingMul = 1f;
+        foreach (var mod in surfaceModifiers.Values) { accelMul *= mod.x; dampingMul *= mod.y; }
+
         // sin(tilt): positive when the right end is the lower one, so the ball
         // accelerates toward it. Same sign convention as the HTML prototype.
         float slope = -platformVector.y / platformLength;
-        velocityAlongPlatform += slope * rollAcceleration * platformLength * Time.fixedDeltaTime;
-        velocityAlongPlatform *= Mathf.Pow(0.5f, Time.fixedDeltaTime / dampingHalfLife);
+        velocityAlongPlatform += slope * rollAcceleration * accelMul * platformLength * Time.fixedDeltaTime;
+        velocityAlongPlatform += pendingAcceleration * Time.fixedDeltaTime;
+        pendingAcceleration = 0f;
+        velocityAlongPlatform *= Mathf.Pow(0.5f, Time.fixedDeltaTime / (dampingHalfLife * dampingMul));
         distanceAlongPlatform += velocityAlongPlatform * Time.fixedDeltaTime;
 
         float minDist = endStopDistance;

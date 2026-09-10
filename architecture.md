@@ -10,7 +10,8 @@ Third-party: [PrimeTween](https://github.com/KyryloKuzyk/PrimeTween) (via OpenUP
 
 The game ships **two modes** (§8): *Classic*, where a level fits one phone screen, and *Tall*, where the climb runs
 several screens and the camera scrolls to follow it. They share every screen, script and mechanic below and differ
-only in which gameplay scene loads, which level list is read, and which unlock track gates it.
+only in which gameplay scene loads, which level list is read, and which unlock track gates it. Level content is
+described separately in `level-design.md`.
 
 ## 1. Scene graph and navigation
 
@@ -116,9 +117,10 @@ now-removed `LevelLoader`, no longer applies — see [Cleanup history](#cleanup-
 
 `LevelConfig` (`ScriptableObject`, `Assets/Levels/Configs/`) holds `levelId`, `levelIndex`, and an
 `obstaclesPrefab`, plus three fields that describe a tall level's climb (§8): `climbHeight`, `levelFloorY` and
-`ceilingPadding`. Eleven configs exist — `Level_01`…`Level_10` for Classic, `Tall_01` for Tall.
+`ceilingPadding`.
 `ballStartPosition`, `winningHolePosition` and `timeLimit` are placeholder fields — not read by anything, since
-ball/hole placement and timing stay scene-authored in both modes.
+ball/hole placement and timing stay scene-authored in both modes. Twenty configs exist — `Level_01`…`Level_18`
+for Classic, `Tall_01`/`Tall_02` for Tall.
 
 `climbHeight` defaults to `0`, which means *leave the scene's own `StickController.maxOffset` alone*. That's what
 makes every pre-existing Classic config work untouched: they simply don't carry the field, so they read as 0 and
@@ -138,9 +140,10 @@ under an `ObstaclesRoot` transform. On win, `WinScreenController` advances to `C
 back to level 0 at the end) and calls `SaveManager.UnlockLevel(nextIndex)` before loading gameplay again — so
 finishing a Tall level leads to the next Tall level, not back into Classic.
 
-Obstacle prefabs live in `Assets/Levels/ObstaclePrefabs/` (`Level_02_Obstacles.prefab` … `Level_10_Obstacles.prefab`,
-plus `Tall_01_Obstacles.prefab`); Level 1 has none, matching the `obstaclesPrefab == null` early-out in
-`LevelController`.
+Obstacle prefabs live in `Assets/Levels/ObstaclePrefabs/` (`Level_02_Obstacles.prefab` … `Level_18_Obstacles.prefab`,
+plus `Tall_01_Obstacles.prefab`/`Tall_02_Obstacles.prefab`); Level 1 has none, matching the `obstaclesPrefab == null`
+early-out in `LevelController`. Levels 2–10 and Tall 01 are built from lose holes only; 11–18 and Tall 02 use the
+obstacle/booster set described in §4a and, from a design standpoint, in `level-design.md`.
 
 ## 4. Gameplay mechanics
 
@@ -201,6 +204,42 @@ sense of ascent instead; if that ever stops being enough, the fix is to disable 
 and scale one sprite to the whole column. It also re-fits automatically whenever `CameraAspectFit` (below) grows
 a camera's `orthographicSize` on a narrow device, since it reads the camera's current size/aspect live rather than
 caching it once.
+
+### 4a. Obstacles and boosters
+
+Every obstacle acts on the ball through a small **external-influence API** on `BallOnPlatformController`, so the
+1-DOF simulation stays the only thing that ever moves the ball:
+
+| Call | Effect | Used by |
+|---|---|---|
+| `AddImpulse(dv)` / `SetVelocity(v)` | instant change of along-platform velocity | `BumperObstacle`, `BallShield` knock-back |
+| `AddAcceleration(a)` | along-platform acceleration for the *current* physics step (accumulated, cleared after integration) | `WindZone`, `MagnetObstacle` |
+| `RegisterSurface(key, accelMul, dampingMul)` / `UnregisterSurface` | multiplies roll acceleration and damping half-life while registered | `IcePatch` |
+| `SignedOffsetAlong(point)` / `Tangent` | where a world point sits relative to the ball along the stick (−left / +right) | everything that needs a direction |
+
+Because the ball is kinematic with `useFullKinematicContacts`, all of these are ordinary trigger colliders on
+the obstacle — the same channel the holes already use. The scripts live in `Assets/Scripts/Gameplay/Obstacles/`
+and `…/Boosters/`, the prefabs in `Assets/Prefabs/Obstacles/`:
+
+- **`BumperObstacle`** — `SetVelocity` away from its centre on contact, with a cooldown and a squash tween.
+- **`WindZone`** — constant `AddAcceleration` while inside; optional gusting (`period`/`dutyCycle`/`phase`).
+  `size` drives a `Layout()` that sizes the trigger, the 9-sliced band, the fan and the chevrons together.
+- **`MagnetObstacle`** — `AddAcceleration` toward itself with distance falloff, reach = its `CircleCollider2D`.
+- **`LaserGate`** + **`LaserBeam`** — timed on/off beam; the beam child relays its trigger to the gate, which
+  calls `BallHazard.Zap`. `width` drives `Layout()`.
+- **`IcePatch`** — `RegisterSurface` on enter, `UnregisterSurface` on exit (and on disable, defensively).
+- **`Oscillator`** — cosmetic-free modifier that slides any transform on a sine; makes a hole "drift".
+- **`Pickup`** (abstract) → **`JetBoostPickup`** (parks a `StickBoost` on the stick that scales `riseSpeed`/`fallSpeed`
+  and restores the authored values when the timer ends; a second pickup extends rather than stacks) and
+  **`ShieldPickup`** (adds/activates `BallShield` on the ball).
+- **`BallHazard`** is the static counterpart of `LoseTrigger.FallIntoHole` for non-hole deaths: it checks the
+  shield first (`TryShield`), then runs a flash-and-burst and reports `GameState.Lose` after the same
+  `screenDelay` beat. `LoseTrigger` calls `BallHazard.TryShield` before swallowing the ball, and ignores the ball
+  for `shieldGrace` seconds afterwards so the knock-back can carry it out.
+
+The sprites in `Assets/Art/Obstacles/` are generated, not drawn: `Assets/Editor/ObstacleArtGenerator.cs`
+(**Tools ▸ Tilt Ball ▸ Generate Obstacle Art**) rasterises flat SDF shapes in the game's palette and imports them
+at 100 PPU, with 9-slice borders on the band/ice sheets. Regenerating in place keeps every prefab reference.
 
 ## 5. UI layer
 
@@ -275,8 +314,8 @@ no mode choice on this screen; both modes are chosen on the next one. `LevelSele
 list as a single vertical path that scrolls (§3) and additionally carries a `tallButton` fixed to the bottom-right
 corner as a **side quest**, unaffected by the path's scrolling underneath it. Tapping it (`PlayTall`) sets
 `GameMode.Tall`, resumes at `SaveManager.HighestUnlocked(Tall)` (clamped into range), and loads gameplay the same
-way a Classic node does — there's no visible level list for Tall at all, since only one Tall level (`Tall_01`)
-exists today.
+way a Classic node does — there's no visible level list for Tall at all; the track simply resumes at the highest
+unlocked Tall level (`Tall_01`, then `Tall_02`).
 
 ## 6. Persistence
 
@@ -384,7 +423,7 @@ not just by name) and has since been removed:
   uses `TouchTiltButton` instead.
 - **`Assets/Physics/BouncyBall.physicsMaterial2D`** — unreferenced by any prefab, scene, or asset.
 - **Level 11** — the `lvl11` `LevelConfig` and its mangled-named `Level_!1.prefab` obstacle prefab are gone; the
-  game currently ships ten Classic levels, `Level_01`…`Level_10`.
+  game shipped ten Classic levels at the time, `Level_01`…`Level_10`; 11–18 were added later with the obstacle set (§4a).
 - **MainMenu's mode picker** — `MainMenuFlow` used to carry a `TallButton` next to `PlayButton`, both routed
   through a `StartMode` method that set the mode before handing off to LevelSelect. Neither the button nor the
   method exists anymore: MainMenu now has one `PlayButton`, and LevelSelect decides the mode itself (§3, §5) via

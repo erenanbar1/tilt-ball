@@ -45,7 +45,14 @@ public class LoseTrigger : MonoBehaviour
     // waiting out the whole clip, which drags.
     public float screenDelay = 1f;
 
+    // After a shield absorbs the drop the Ball is still sitting inside the hole
+    // for a few frames while the knock-back carries it out; the hole has to look
+    // away for that long or it would just swallow the Ball on the next
+    // OnTriggerStay2D.
+    public float shieldGrace = 0.6f;
+
     private bool lost;
+    private float ignoreUntil = -1f;
     private Collider2D holeCollider;
 
     void Awake()
@@ -58,7 +65,14 @@ public class LoseTrigger : MonoBehaviour
     void OnTriggerStay2D(Collider2D other)
     {
         if (lost || !other.CompareTag(ballTag)) return;
+        if (Time.time < ignoreUntil) return;
         if (!IsSufficientlyContained(other)) return;
+
+        if (BallHazard.TryShield(other, holeCollider.bounds.center))
+        {
+            ignoreUntil = Time.time + shieldGrace;
+            return;
+        }
 
         lost = true;
         // Sounds the drop as it starts, so it reads with the fall rather than
