@@ -332,11 +332,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fff00e1ba61171b4eb272ec908f9b20c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraClimbFollow
-  target: {fileID: 0}
+  target: {fileID: 934749504}
   followOffsetY: 2.5
   smoothTime: 0.18
-  minY: 0
-  maxY: 0
+  minY: -0.21999979
+  maxY: -0.21999979
 --- !u!114 &428832240
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -400,7 +400,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -45.400024}
+  m_AnchoredPosition: {x: 0, y: 41.999878}
   m_SizeDelta: {x: 139.5, y: 372.8}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &689073091
@@ -560,6 +560,11 @@ LightingSettings:
   m_PVRFilteringAtrousPositionSigmaIndirect: 2
   m_PVRFilteringAtrousPositionSigmaAO: 1
   m_RespectSceneVisibilityWhenBakingGI: 0
+--- !u!4 &934749504 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6941495459915712691, guid: 98a395abf8ba44b32ad3a692aa1067f6, type: 3}
+  m_PrefabInstance: {fileID: 238694113}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1441304872
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -728,8 +733,8 @@ RectTransform:
   - {fileID: 1923369616}
   m_Father: {fileID: 1441304873}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMin: {x: 0, y: 0.03671706}
+  m_AnchorMax: {x: 1, y: 0.9492441}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -862,7 +867,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2850851892769741298, guid: 1e00b85310b974e21a592e741a5e61ec, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -140
+      value: 14
       objectReference: {fileID: 0}
     - target: {fileID: 2850851892769741298, guid: 1e00b85310b974e21a592e741a5e61ec, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
