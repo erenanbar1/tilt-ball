@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 619757e00b9d242488196de7cb6db28e, type: 3}
-  m_Name: Tall_01
+  m_Name: Tall_02
   m_EditorClassIdentifier: Assembly-CSharp::LevelConfig
-  levelId: T1
-  levelIndex: 0
-  levelPrefab: {fileID: 9052662366881303724, guid: 98a395abf8ba44b32ad3a692aa1067f6, type: 3}
+  levelId: T2
+  levelIndex: 1
+  levelPrefab: {fileID: 9052662366881303724, guid: ade3656e2fe2445caa23b6220c031b36, type: 3}
   obstaclesPrefab: {fileID: 0}
   ballStartPosition: {x: 0, y: 0, z: 0}
   winningHolePosition: {x: 0, y: 0, z: 0}

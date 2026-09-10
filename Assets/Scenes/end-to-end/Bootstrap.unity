@@ -502,6 +502,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 415b5fefa4101bd45950a74b80bca913, type: 2}
   tallLevels:
   - {fileID: 11400000, guid: 45ec95d6d306067418846919bce50515, type: 2}
+  - {fileID: 11400000, guid: 4fdeb7a3af0a945eab6ce5b855d5c0ba, type: 2}
 --- !u!4 &1807381603
 Transform:
   m_ObjectHideFlags: 0

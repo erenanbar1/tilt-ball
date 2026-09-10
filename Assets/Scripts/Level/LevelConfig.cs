@@ -6,6 +6,14 @@ public class LevelConfig : ScriptableObject
     public string levelId;  
     public int levelIndex;
 
+    // The whole level in one prefab — board length, background, obstacles, rig and
+    // winning hole — carrying a LevelBoard that applies itself when it spawns.
+    // When this is set it is the level, and everything below is ignored: the
+    // length lives in the prefab, where it can be judged against the art in the
+    // Scene view rather than typed blind into an asset.
+    public GameObject levelPrefab;
+
+    [Header("Older levels — only read when levelPrefab is empty")]
     // All obstacles for this level, grouped under one prefab and spawned into
     // ObstaclesRoot by LevelController. Null means the level has none (e.g. Level 1).
     public GameObject obstaclesPrefab;

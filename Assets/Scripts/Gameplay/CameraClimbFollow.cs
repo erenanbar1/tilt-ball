@@ -17,12 +17,19 @@ public class CameraClimbFollow : MonoBehaviour
     public float followOffsetY = 2.5f;
     public float smoothTime = 0.18f;
 
-    [Header("Travel range — set by LevelController")]
+    [Header("Travel range — derived from the level's bounds")]
     public float minY;
     public float maxY;
 
     Camera cam;
     float velocityY;
+
+    // The level's own extents, kept so the travel range can be worked out again
+    // whenever the camera's size changes underneath it.
+    float floorY;
+    float ceilingY;
+    bool hasBounds;
+    float boundsOrthographicSize = -1f;
 
     // Lazy rather than cached in Awake: LevelController configures this from its
     // own Awake, and Unity doesn't order Awake between objects.
@@ -33,10 +40,30 @@ public class CameraClimbFollow : MonoBehaviour
     // to allow that simply centres, which is every Classic level.
     public void ConfigureBounds(float floorY, float ceilingY)
     {
+        this.floorY = floorY;
+        this.ceilingY = ceilingY;
+        hasBounds = true;
+        RecomputeTravel();
+    }
+
+    void RecomputeTravel()
+    {
         float half = Cam.orthographicSize;
+        boundsOrthographicSize = half;
         minY = floorY + half;
         maxY = ceilingY - half;
         if (maxY < minY) minY = maxY = (floorY + ceilingY) * 0.5f;
+    }
+
+    // How far the camera can actually see, top and bottom, across its whole
+    // travel. On a level long enough to scroll this is exactly the level's own
+    // bounds; on a short one, where the camera parks in the middle, the view can
+    // reach past them — which is what the background has to be built to cover.
+    public void GetVisibleRange(out float bottom, out float top)
+    {
+        float half = Cam.orthographicSize;
+        bottom = minY - half;
+        top = maxY + half;
     }
 
     // Without this the camera would glide in from wherever the scene left it on
@@ -52,6 +79,15 @@ public class CameraClimbFollow : MonoBehaviour
 
     void LateUpdate()
     {
+        // CameraAspectFit grows orthographicSize on a narrow screen and reapplies
+        // it whenever the screen changes — a phone rotating, the Game view being
+        // resized, a different device picked in the Simulator. Half a view is
+        // exactly what the travel range is inset by, so a size that moved has to
+        // be worked back through rather than left at whatever it was on the first
+        // frame, or the camera stops short of the summit or scrolls past the
+        // bottom of the level.
+        if (hasBounds && !Mathf.Approximately(Cam.orthographicSize, boundsOrthographicSize)) RecomputeTravel();
+
         if (target == null) return;
 
         Vector3 pos = transform.position;
