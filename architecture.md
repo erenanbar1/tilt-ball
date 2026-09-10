@@ -253,16 +253,36 @@ Two shared utilities back every screen:
   `MainMenuFlow`. Its `AnimateTitle` takes an optional `idleAfter` flag that starts a gentle yoyo scale breathing
   loop once the drop-in lands; only `MainMenuFlow`'s title uses it, since that's the one title that stays on
   screen (WinScreen/GameOver reload out before an idle loop would read).
-- **`SafeArea`** — adjusts a `RectTransform`'s anchors to `Screen.safeArea` every frame, so notches, the Dynamic
-  Island, and iOS slide-over/split-view are handled live rather than once at launch.
+- **`SafeArea`** — see below.
+
+### Canvas conventions
+
+Every screen's `Canvas` is set to **Scale With Screen Size**, reference resolution `1080×1920`, Match Width Or
+Height at `0.5` (balanced between the two) — the same `CanvasScaler` settings everywhere, so UI elements scale
+identically on every screen regardless of which controller owns it. `1080×1920` is also exactly the aspect
+`ScreenFitProfile.designAspect` defaults to (§ below), so the UI's own scaling and the world camera's letterboxing
+are tuned to the same design target.
+
+Render mode is where the eight scenes actually split into two groups:
+- **Screen Space - Camera**, bound to a real camera, on MainMenu, LevelSelect, Gameplay and GameplayTall (each
+  bound to its own `CameraAspectFit`-managed camera in the Inspector) and on WinScreen/GameOver (bound at
+  **runtime** instead — both controllers' `Awake` sets `GetComponent<Canvas>().worldCamera = Camera.main`, since
+  neither scene carries a camera of its own to assign in the Inspector; §1 explains why). This mode is what makes
+  a Canvas respect a pillarboxed camera `Rect` instead of drawing across the full physical screen, including into
+  the letterbox bars.
+- **Screen Space - Overlay**, camera-less, on PauseMenu alone. Its dialog is a centered box that doesn't need
+  pixel-accurate alignment against the pillarboxed game viewport or the safe-area cutouts the way a full-bleed
+  HUD does, so it skips both the camera binding and `SafeArea` (below) entirely — simplest option for a screen
+  that doesn't need what the camera-space rig buys the others.
 
 ### Responsive camera fit
 
-**`CameraAspectFit`** (`[DefaultExecutionOrder(-1000)]`, one per gameplay/menu camera) fits that camera's world
-content to the device the way a fixed-design mobile layout is meant to: the visible world **width** is held
-constant on every device — `designOrthographicSize * profile.designAspect`, captured from whatever the scene's
-camera was authored with — so nothing at the design's horizontal edges (the stick, the pulleys) can ever be
-cropped, on any aspect ratio. Height is what's allowed to vary between devices:
+**`CameraAspectFit`** (`[DefaultExecutionOrder(-1000)]`) lives on exactly the four cameras the "main" scenes each
+own — Gameplay, GameplayTall, LevelSelect and MainMenu — and fits that camera's world content to the device the
+way a fixed-design mobile layout is meant to: the visible world **width** is held constant on every device —
+`designOrthographicSize * profile.designAspect`, captured from whatever the scene's camera was authored with — so
+nothing at the design's horizontal edges (the stick, the pulleys) can ever be cropped, on any aspect ratio. Height
+is what's allowed to vary between devices:
 - Device aspect ≥ the design's (tablets, squarer screens): `orthographicSize` stays at its authored value and the
   viewport **width** is capped to match the design aspect at full height, centered — pillarboxed sides.
 - Device aspect < the design's (ordinary tall phones, and very elongated ones like a folding phone's cover
@@ -273,19 +293,43 @@ It checks `Screen.width`/`Screen.height` every frame (cheap; the fit math only r
 live resize — Editor window resizing, Android split-screen, a foldable's fold state — is picked up without a
 scene reload. Changing `orthographicSize` only changes how much of the world the camera shows; it never rescales
 any `Transform`, so `Rigidbody2D` physics (gravity, the stick's tuned speeds, rope/joint distances) stay exactly
-as authored regardless of which branch is active. It also creates and owns a second `LetterboxBackdrop` camera
-(solid black, `cullingMask = 0`, `depth` one below the main camera) itself, since a camera's own Clear Flags only
-clear its own viewport rect — without a backdrop camera, whatever the GPU last drew would show through outside
-the game's rect. **`ScreenFitProfile`** is the shared `ScriptableObject` every scene's `CameraAspectFit`
-references so the letterbox behaves identically everywhere; its one field, `designAspect`, defaults to `1080/1920`
-to match the project's `CanvasScaler` reference resolution. Gameplay's Canvas is expected to be Screen Space -
-Camera bound to this same camera, so UI and world share the rect and can never separate on any aspect ratio.
+as authored regardless of which branch is active. It also creates and owns a second `LetterboxBackdrop` camera at
+runtime (solid black, `cullingMask = 0`, `depth` one below the main camera) itself, since a camera's own Clear
+Flags only clear its own viewport rect — without a backdrop camera, whatever the GPU last drew would show through
+outside the game's rect. `WinScreen`, `GameOver` and `PauseMenu` don't get a `CameraAspectFit` of their own —
+they're additive overlays over Gameplay/GameplayTall (§1) and simply inherit whatever fit is already applied to
+the camera underneath.
+
+**`ScreenFitProfile`** is the one shared `ScriptableObject` asset every scene's `CameraAspectFit` references, so
+the letterbox threshold behaves identically everywhere rather than four independently-tuned copies drifting apart.
+Its single field, `designAspect`, defaults to `1080/1920` — deliberately the same number as the `CanvasScaler`
+reference resolution above, so the point at which the camera starts pillarboxing lines up with the point the UI
+was actually designed for.
+
+**`SafeArea`** (`[ExecuteAlways]`) insets a `RectTransform` to `Screen.safeArea` — notches, punch-hole cameras,
+rounded corners, the iOS home indicator — so every child anchored to its edges (a top bar, the pause button, the
+bottom touch controls) clears those cutouts for free, without each one needing its own margin logic. It composes
+with `CameraAspectFit` rather than duplicating it: `Screen.safeArea` is reported in raw device pixels against the
+*full* physical screen, but on a pillarboxed wide device the Screen Space - Camera canvas only occupies its
+camera's own `Rect`, not the full screen. So `SafeArea` first intersects the OS-reported safe area with the
+target camera's `Rect`, then remaps that intersection into the camera rect's own `[0,1]` space before applying it
+as anchors. On a device where the letterbox bars already clear the cutout the intersection is just the full
+camera rect and this is a no-op; on an ordinary full-bleed phone it reduces to the plain safe-area inset. It
+defaults to the parent `Canvas`'s own `worldCamera` — exactly the camera `CameraAspectFit` manages, and for
+WinScreen/GameOver exactly the camera their controller bound at runtime — so it needs no manual wiring in the
+common case. It's present in six of the eight scenes: MainMenu, LevelSelect, Gameplay, GameplayTall, WinScreen
+and GameOver. It's absent from PauseMenu (Overlay-mode canvas, no camera rect to intersect against) and Bootstrap
+(no canvas at all).
 
 **`PinnedToView`** (`[ExecuteAlways]`) pins an object to a fixed fraction of the camera's *current* view — `(0.5,
 0.5)` is dead centre, `(0.5, 0)` bottom-centre, the same convention as a UI anchor — rather than a fixed world
 position, so it doesn't drift when `CameraAspectFit` grows a camera's `orthographicSize` on a narrower device.
 Since `BackgroundFitter` always stretches the background to exactly fill that same view, pinning to a view
-fraction here is equivalent to pinning to a fixed spot on the background art itself.
+fraction here is equivalent to pinning to a fixed spot on the background art itself. In practice it's used in
+exactly one place today: the `MrBall.prefab` instance idling on the Main Menu carries it as a prefab-instance
+override at `(0.5, 0.25)` — horizontally centred, a quarter of the way up the screen — so the mascot holds that
+same spot on the background art on every device instead of drifting toward the letterbox edge on a narrow phone
+or toward the pillarbox bars on a wide one.
 
 Gameplay's pause button is `Assets/Prefabs/PauseButton.prefab` — a plain `Button`/`Image`, wired to
 `GameplayHUD.pauseButton` in the inspector — sitting in front of a decorative `TopBar` image (`HUD_TopBar.png`)
@@ -302,10 +346,11 @@ the toggle icons — is what's actually hidden until opened.
 
 **`AudioToggleButton`** is one component, reused for both the music and SFX toggles (`Kind.Music`/`Kind.Sfx`): it
 calls `AudioManager.Instance.ToggleMusic()`/`ToggleSfx()` and swaps its own `Image.sprite` between an on/off pair
-to match `AudioManager`'s current state, refreshing both on click and on `Start()` so it always opens showing
-whatever the player last set rather than a default. The pause menu places these two buttons directly, since it's
-already an overlay; `MainMenuFlow`/`LevelSelectController` instead put them inside the `SettingsPanelController`
-overlay described above, since neither of those screens is an overlay of its own.
+(`Assets/Art/UI/Settings/MusicOn.png`/`MusicOff.png`, `SfxOn.png`/`SfxOff.png`) to match `AudioManager`'s current
+state, refreshing both on click and on `Start()` so it always opens showing whatever the player last set rather
+than a default. The pause menu places these two buttons directly, since it's already an overlay; `MainMenuFlow`/
+`LevelSelectController` instead put them inside the `SettingsPanelController` overlay described above, since
+neither of those screens is an overlay of its own.
 
 ### Level select and the Tall side quest
 
