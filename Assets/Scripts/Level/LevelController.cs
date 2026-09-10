@@ -18,6 +18,18 @@ public class LevelController : MonoBehaviour
     public Transform pulleys;
     public Transform winningHole;
 
+    [Header("Authoring")]
+    // A level left sitting in this scene purely so the HUD has something to be
+    // laid out over. The top bar, the pause button and the touch controls are
+    // shared by every level and so live here rather than in any one level prefab
+    // — but positioning them over an empty scene is guesswork, and a Screen Space
+    // canvas cannot go in a level prefab without swamping it (it becomes a
+    // ~1900-unit object and the board disappears next to it in Prefab Mode).
+    //
+    // It is scenery, never the level that gets played: whatever the config or the
+    // play-test button names replaces it the moment play starts.
+    public bool discardAuthoringLevel = true;
+
     [Header("Standalone preview")]
     // Used only when this scene is played on its own. Normally the level comes
     // from GameManager, which lives in Bootstrap and is told which level to load
@@ -37,9 +49,16 @@ public class LevelController : MonoBehaviour
         // length the prefab was authored at. Nothing here has anything left to
         // apply to it, so the scene-authored path is skipped entirely rather than
         // being run first and then overridden.
-        GameObject prefab = config != null ? config.levelPrefab : PreviewLevel();
+        // The level being play-tested wins over whatever the menus last chose:
+        // arming one is an explicit "show me this one". Falls back to the chosen
+        // level, and then — with no GameManager at all — to the scene's own
+        // preview slot.
+        GameObject prefab = ArmedPreviewLevel();
+        if (prefab == null) prefab = config != null ? config.levelPrefab : previewLevelPrefab;
+
         if (prefab != null)
         {
+            if (discardAuthoringLevel) DiscardAuthoringLevels();
             Instantiate(prefab, transform);
             return;
         }
@@ -55,19 +74,28 @@ public class LevelController : MonoBehaviour
     public const string PreviewLevelKey = "TiltBall.PreviewLevelPrefab";
 #endif
 
-    // Which level to show when nobody picked one — that is, when this scene was
-    // played on its own instead of being reached through the menus.
-    GameObject PreviewLevel()
+    // Clears out any level left in the scene for authoring, so the real one is not
+    // laid on top of it — two boards, two rigs, two balls.
+    void DiscardAuthoringLevels()
+    {
+        foreach (var board in GetComponentsInChildren<LevelBoard>(true))
+        {
+            // Deactivated first: Destroy only takes effect at the end of the
+            // frame, and until then the doomed board would still run its own
+            // Start and fight the real one over the camera.
+            board.gameObject.SetActive(false);
+            Destroy(board.gameObject);
+        }
+    }
+
+    // The level the editor's "play this level" button pointed at, if any.
+    GameObject ArmedPreviewLevel()
     {
 #if UNITY_EDITOR
         string path = UnityEditor.SessionState.GetString(PreviewLevelKey, string.Empty);
-        if (!string.IsNullOrEmpty(path))
-        {
-            var chosen = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(path);
-            if (chosen != null) return chosen;
-        }
+        if (!string.IsNullOrEmpty(path)) return UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>(path);
 #endif
-        return previewLevelPrefab;
+        return null;
     }
 
     // Deferred to Start so the camera lands on a rig that has finished waking up,

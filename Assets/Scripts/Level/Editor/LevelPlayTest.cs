@@ -18,9 +18,12 @@ using UnityEngine;
 [InitializeOnLoad]
 public static class LevelPlayTest
 {
-    // The host scene: a camera, the HUD, and a LevelController to spawn into.
-    // Levels bring everything else with them.
-    const string HostScene = "Assets/Scenes/end-to-end/GameplayTall.unity";
+    // Play always starts here, never in a gameplay scene. Bootstrap owns
+    // GameManager, SceneLoader, AudioManager and SaveManager, and every other
+    // scene is loaded additively on top of it — so entering play anywhere else
+    // leaves the game with no pausing, no win/lose, no sound and no saves.
+    // BootstrapRunner sees the armed level and heads for it instead of the menu.
+    const string BootScene = "Assets/Scenes/end-to-end/Bootstrap.unity";
 
     static LevelPlayTest()
     {
@@ -45,9 +48,9 @@ public static class LevelPlayTest
         if (ArmedLevel == path) return;
 
         SessionState.SetString(LevelController.PreviewLevelKey, path);
-        // Without this, Play runs whichever scene is open — Bootstrap more often
-        // than not, which goes to the main menu.
-        EditorSceneManager.playModeStartScene = AssetDatabase.LoadAssetAtPath<SceneAsset>(HostScene);
+        // Without this, Play runs whichever scene is open — a gameplay scene on
+        // its own more often than not, with none of Bootstrap's systems loaded.
+        EditorSceneManager.playModeStartScene = AssetDatabase.LoadAssetAtPath<SceneAsset>(BootScene);
 
         Debug.Log("Bölüm önizlemesi: <b>" + System.IO.Path.GetFileNameWithoutExtension(path) +
                   "</b> — Play'e bastığında bu bölüm açılacak. Normal akışa dönmek için " +

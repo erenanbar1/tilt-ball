@@ -54,6 +54,23 @@ public class SafeArea : MonoBehaviour
         Rect safeArea = Screen.safeArea;
         Rect camRect = targetCamera.rect;
 
+        // Screen.safeArea is only meaningful when it is measured in the same
+        // pixels as Screen.width/height. On a device it always is. In the editor
+        // it often isn't: the Game view reports its own window size while the
+        // safe area comes back in the simulated handset's resolution, and
+        // dividing one by the other produces an inset out of nowhere — a
+        // 668x788 window against a 1080x1920 safe area once pinned the HUD into
+        // the left third of the screen, and because this component runs in edit
+        // mode that bogus anchor was written into the scene and stayed there.
+        // A safe area that doesn't fit inside the screen it is supposedly part of
+        // is not a safe area, so it is ignored rather than acted on.
+        if (safeArea.width <= 0f || safeArea.height <= 0f
+            || safeArea.xMax > Screen.width + 1f || safeArea.yMax > Screen.height + 1f
+            || safeArea.xMin < -1f || safeArea.yMin < -1f)
+        {
+            safeArea = new Rect(0f, 0f, Screen.width, Screen.height);
+        }
+
         if (hasLast && safeArea == lastSafeArea && camRect == lastCamRect
             && Screen.width == lastScreenWidth && Screen.height == lastScreenHeight)
         {

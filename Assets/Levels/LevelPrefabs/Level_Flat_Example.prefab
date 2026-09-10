@@ -231,7 +231,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 410852199165240496, guid: 5c477889c632b43579a2a31e965dec90, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: -0.3
       objectReference: {fileID: 0}
     - target: {fileID: 594168523863414990, guid: 5c477889c632b43579a2a31e965dec90, type: 3}
       propertyPath: m_LocalPosition.x
@@ -239,7 +239,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 594168523863414990, guid: 5c477889c632b43579a2a31e965dec90, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: -0.3
       objectReference: {fileID: 0}
     - target: {fileID: 1382788335200281474, guid: 5c477889c632b43579a2a31e965dec90, type: 3}
       propertyPath: m_Size.x
@@ -255,7 +255,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1859825286830581779, guid: 5c477889c632b43579a2a31e965dec90, type: 3}
       propertyPath: distanceAlongPlatform
-      value: -1
+      value: 3.6861503
       objectReference: {fileID: 0}
     - target: {fileID: 2867443179410121084, guid: 5c477889c632b43579a2a31e965dec90, type: 3}
       propertyPath: m_LocalScale.x
@@ -355,7 +355,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5660372115172798544, guid: 5c477889c632b43579a2a31e965dec90, type: 3}
       propertyPath: m_Positions.Array.data[0].y
-      value: 5.3
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 5660372115172798544, guid: 5c477889c632b43579a2a31e965dec90, type: 3}
       propertyPath: m_Positions.Array.data[1].x
@@ -375,7 +375,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6406899287350318158, guid: 5c477889c632b43579a2a31e965dec90, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: 0.0014195442
       objectReference: {fileID: 0}
     - target: {fileID: 6406899287350318158, guid: 5c477889c632b43579a2a31e965dec90, type: 3}
       propertyPath: m_LocalPosition.y
@@ -411,7 +411,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6641139290665139663, guid: 5c477889c632b43579a2a31e965dec90, type: 3}
       propertyPath: m_Positions.Array.data[0].y
-      value: 5.3
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 6641139290665139663, guid: 5c477889c632b43579a2a31e965dec90, type: 3}
       propertyPath: m_Positions.Array.data[1].x
