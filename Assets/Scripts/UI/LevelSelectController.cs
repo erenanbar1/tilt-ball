@@ -63,7 +63,7 @@ public class LevelSelectController : MonoBehaviour
         var lm = LevelManager.Instance;
         if (lm == null || content == null) return;
 
-        BuildPath(lm.LevelsFor(GameMode.Classic));
+        BuildPath(lm.classicLevels);
     }
 
     void BuildPath(LevelConfig[] levels)
@@ -187,7 +187,7 @@ public class LevelSelectController : MonoBehaviour
         AudioManager.PlayClick();
 
         var lm = LevelManager.Instance;
-        var tall = lm != null ? lm.LevelsFor(GameMode.Tall) : null;
+        var tall = lm != null ? lm.tallLevels : null;
         if (tall == null || tall.Length == 0) return;
 
         int index = SaveManager.Instance != null

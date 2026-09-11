@@ -80,7 +80,7 @@ two buttons are Resume and Main Menu.
 | `AudioManager` | One looping `AudioSource` for music, one one-shot source for SFX, so SFX never interrupts music. Also owns menu-click sound, win/lose ducking (below), and the persisted music/SFX on-off toggles (§6). |
 | `SceneLoader` | Owns all scene transitions (§1) and the pause/win/lose overlays. |
 | `GameManager` | Tracks `CurrentState` (`Playing/Win/Lose/Pause`) and fires `OnStateChanged`. Knows nothing about levels, and never touches scenes or `Time.timeScale` itself — purely run state. |
-| `LevelManager` | Reads the level lists from `LevelCatalog` and owns the selection: `Mode` (`Classic/Tall`), `Current`, `CurrentIndex`. Selection only changes through `Select(mode, index)` and `Advance()`, so mode and level can never disagree; `Advance()` also unlocks the next level via `SaveManager`. |
+| `LevelManager` | Owns the level catalogue (`classicLevels`/`tallLevels`) and the selection: `Mode` (`Classic/Tall`), `Current`, `CurrentIndex`. Selection only changes through `Select(mode, index)` and `Advance()`, so mode and level can never disagree; `Advance()` also unlocks the next level via `SaveManager`. |
 | `SaveManager` | Persists one unlock index **per mode** via `PlayerPrefs`; each monotonically increasing. |
 | `BootstrapRunner` | The handoff: in `Start()` (guaranteed to run after every other object's `Awake`) calls `SceneLoader.Instance.GoToMainMenu()`. |
 
@@ -116,17 +116,12 @@ now-removed `LevelLoader`, no longer applies — see [Cleanup history](#cleanup-
 
 ## 3. Level system
 
-`LevelConfig` (`ScriptableObject`, `Assets/Levels/Configs/`) holds `levelIndex`, an `obstaclesPrefab`, an
-optional `backgroundSprite`, plus three fields that describe a tall level's climb (§8): `climbHeight`,
-`levelFloorY` and `ceilingPadding`. A config is Tall iff `climbHeight > 0` (`LevelConfig.Mode`). Twenty configs
-exist — `Level_01`…`Level_18` for Classic, `Tall_01`/`Tall_02` for Tall.
-
-The ordered lists live in `Assets/Levels/LevelCatalog.asset`, which `LevelCatalogBuilder` (editor) regenerates
-from the Configs folder whenever a config is imported, deleted or moved — sorted by `levelIndex`, split by
-mode. `LevelManager` reads the catalog; nothing edits the lists by hand. Authoring is done in the `Gameplay`
-scene through `LevelPreview` on the `Level` object (spawns the obstacle prefab in place, draws the play-area
-box, applies edits back to the prefab) and the `Tools > Tilt Ball` menu (`New Classic/Tall Level`,
-`Play This Level`, progress shortcuts) — see the README's "Adding a level".
+`LevelConfig` (`ScriptableObject`, `Assets/Levels/Configs/`) holds `levelId`, `levelIndex`, and an
+`obstaclesPrefab`, plus three fields that describe a tall level's climb (§8): `climbHeight`, `levelFloorY` and
+`ceilingPadding`.
+`ballStartPosition`, `winningHolePosition` and `timeLimit` are placeholder fields — not read by anything, since
+ball/hole placement and timing stay scene-authored in both modes. Twenty configs exist — `Level_01`…`Level_18`
+for Classic, `Tall_01`/`Tall_02` for Tall.
 
 `climbHeight` defaults to `0`, which means *leave the scene's own `StickController.maxOffset` alone*. That's what
 makes every pre-existing Classic config work untouched: they simply don't carry the field, so they read as 0 and
