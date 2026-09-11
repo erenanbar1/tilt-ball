@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: GameplayScreenFit
   m_EditorClassIdentifier: Assembly-CSharp::ScreenFitProfile
   designWidth: 7.875
-  designLength: 14
+  designLength: 17.0729

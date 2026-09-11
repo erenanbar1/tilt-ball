@@ -7,9 +7,12 @@ using UnityEngine;
 // it the camera fits to length, at or below it the camera fits to width. All
 // scenes of a given mode (e.g. every gameplay scene) share the same asset so
 // the fit behaves identically everywhere.
+//
+// The target device is the iPhone 15 (1179x2556, aspect 0.4613): every
+// profile keeps that ratio, only the zoom (absolute size) differs per mode.
 [CreateAssetMenu(fileName = "ScreenFitProfile", menuName = "Game/Screen Fit Profile")]
 public class ScreenFitProfile : ScriptableObject
 {
     public float designWidth = 7.875f;
-    public float designLength = 14f;
+    public float designLength = 7.875f * 2556f / 1179f;
 }
