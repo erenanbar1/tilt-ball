@@ -10,6 +10,10 @@ public class LevelConfig : ScriptableObject
     // ObstaclesRoot by LevelController. Null means the level has none (e.g. Level 1).
     public GameObject obstaclesPrefab;
 
+    // Art behind the level, covering whatever the camera fit leaves beyond the
+    // play area. Null keeps the scene's default background.
+    public Sprite backgroundSprite;
+
     // Not read by anything yet — ball/hole placement and level timing are
     // currently identical across every level and stay scene-authored. Kept here
     // as placeholders so a level that needs to vary them later doesn't require

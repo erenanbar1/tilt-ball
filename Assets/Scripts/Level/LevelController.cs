@@ -11,6 +11,7 @@ using UnityEngine;
 public class LevelController : MonoBehaviour
 {
     public Transform obstaclesRoot;
+    public SpriteRenderer background;
 
     [Header("Tall levels — leave empty in the Classic scene")]
     public StickController stick;
@@ -20,8 +21,17 @@ public class LevelController : MonoBehaviour
 
     void Awake()
     {
+        ApplyBackground();
         ApplyLevelGeometry();
         SpawnObstacles();
+    }
+
+    void ApplyBackground()
+    {
+        var config = GameManager.Instance != null ? GameManager.Instance.currentLevel : null;
+        if (config == null || config.backgroundSprite == null || background == null) return;
+
+        background.sprite = config.backgroundSprite;
     }
 
     // Deferred to Start so the camera lands on a rig that has finished waking up,

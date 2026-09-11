@@ -1,24 +1,24 @@
 using UnityEngine;
 
-// Stretches this sprite to exactly cover the target camera's orthographic view,
-// so one background prefab works unmodified across every level regardless of
-// that level's camera size/aspect. [ExecuteAlways] keeps it correct in Edit mode too.
+// Uniformly scales this sprite to cover (never stretch/distort) the parent
+// camera's orthographic view — the art overflows/crops at the edges rather
+// than squishing. Lives as a child of the camera so it follows for free; only
+// the scale is managed here. [ExecuteAlways] keeps it correct in Edit mode too.
 [ExecuteAlways]
 [RequireComponent(typeof(SpriteRenderer))]
 public class BackgroundFitter : MonoBehaviour
 {
-    public Camera targetCamera;
-
-    private SpriteRenderer sr;
-    private float lastSize = -1f;
-    private float lastAspect = -1f;
-    private Vector3 lastCameraPos;
-    private Sprite lastSprite;
+    Camera cam;
+    SpriteRenderer sr;
+    float lastSize = -1f;
+    float lastAspect = -1f;
+    Sprite lastSprite;
 
     void OnEnable()
     {
         sr = GetComponent<SpriteRenderer>();
-        lastSize = -1f;   // force one fit
+        cam = GetComponentInParent<Camera>();
+        lastSize = -1f;
         Fit();
     }
 
@@ -28,34 +28,24 @@ public class BackgroundFitter : MonoBehaviour
     }
 
     // Writing the transform every frame would dirty it (and the renderer's bounds)
-    // for nothing: the camera only changes on a rotation or a resolution change.
+    // for nothing: the view only changes on a rotation or a resolution change.
     void Fit()
     {
-        if (targetCamera == null) targetCamera = Camera.main;
-        if (targetCamera == null || sr == null || sr.sprite == null) return;
-        if (!targetCamera.orthographic) return;
+        if (cam == null) cam = GetComponentInParent<Camera>();
+        if (cam == null || sr == null || sr.sprite == null || !cam.orthographic) return;
 
-        Vector3 camPos = targetCamera.transform.position;
-        if (targetCamera.orthographicSize == lastSize && targetCamera.aspect == lastAspect &&
-            camPos == lastCameraPos && sr.sprite == lastSprite)
-        {
-            return;
-        }
+        if (cam.orthographicSize == lastSize && cam.aspect == lastAspect && sr.sprite == lastSprite) return;
 
         Vector2 spriteSize = sr.sprite.bounds.size;
         if (spriteSize.x <= 0f || spriteSize.y <= 0f) return;
 
-        float viewHeight = targetCamera.orthographicSize * 2f;
-        float viewWidth = viewHeight * targetCamera.aspect;
-        transform.localScale = new Vector3(viewWidth / spriteSize.x, viewHeight / spriteSize.y, 1f);
+        float viewHeight = cam.orthographicSize * 2f;
+        float viewWidth = viewHeight * cam.aspect;
+        float scale = Mathf.Max(viewWidth / spriteSize.x, viewHeight / spriteSize.y);
+        transform.localScale = new Vector3(scale, scale, 1f);
 
-        Vector3 pos = camPos;
-        pos.z = transform.position.z;
-        transform.position = pos;
-
-        lastSize = targetCamera.orthographicSize;
-        lastAspect = targetCamera.aspect;
-        lastCameraPos = camPos;
+        lastSize = cam.orthographicSize;
+        lastAspect = cam.aspect;
         lastSprite = sr.sprite;
     }
 }

@@ -1,38 +1,35 @@
 using UnityEngine;
 
-// Fits this camera's world content into the screen the way a fixed-design
-// mobile layout is meant to: the visible world WIDTH is held constant on every
-// device — designOrthographicSize * profile.designAspect, captured from
-// whatever this scene's camera was authored with — so nothing at the design's
-// horizontal edges (the stick, the pulleys) can ever be cropped, on any aspect
-// ratio. Height is what's allowed to vary between devices, never width.
+// Fits this camera's world content to the screen by holding the level's
+// vertical LENGTH constant whenever possible, and only falling back to
+// holding WIDTH constant when the device is narrower than the design allows
+// (so nothing horizontal is ever cropped). Whichever dimension isn't pinned
+// grows beyond the design size — that surplus space is expected to be filled
+// by world-space background art (see BackgroundFitter), not black bars.
 //
-//  - Device aspect >= profile.designAspect (tablets, squarer screens):
-//    orthographicSize is pinned back to its authored value and the viewport
-//    WIDTH is capped to match the design aspect at full height, centered —
-//    black bars appear on the sides.
-//  - Device aspect <  profile.designAspect (ordinary tall phones, and very
-//    elongated ones like a folding phone's cover screen): the viewport is
-//    left full-screen, and orthographicSize is grown just enough
-//    (designHalfWidth / deviceAspect) to keep the same world width visible at
-//    that full-screen aspect — the extra room lands as headroom above/below,
-//    never as a horizontal crop.
+//  - Device aspect > profile designAspect (wide/square screens): FIT TO
+//    LENGTH — orthographicSize is pinned to profile.designLength / 2, so the
+//    full level length is always visible. Extra width beyond
+//    profile.designWidth appears on the sides.
+//  - Device aspect <= profile designAspect (narrow/tall phones): FIT TO
+//    WIDTH — orthographicSize grows just enough to keep profile.designWidth
+//    fully visible. Extra height beyond profile.designLength appears
+//    above/below.
+//
+// The camera viewport always fills the full screen (rect = 0,0,1,1) — there
+// is no pillarbox/letterbox backdrop in this system.
 //
 // Changing orthographicSize only changes how much of the world the camera
 // shows — it never rescales any Transform, so Rigidbody2D physics (gravity,
 // the stick's tuned speeds, rope/joint distances) stay exactly as authored
 // regardless of which branch is active.
 //
-// A second camera paints the bars black — a camera's own Clear Flags only
-// clear its own viewport rect, so without one, whatever the GPU last drew
-// would show through outside the game's rect. This component creates and
-// owns that backdrop camera itself, so no scene needs to hand-author one and
-// it can never drift out of sync with the main camera's rect.
-//
 // The Canvas showing gameplay UI is expected to be Screen Space - Camera,
-// assigned to this same camera, so UI and world share this exact rect and can
-// never separate from each other on any aspect ratio — see BackgroundFitter
-// for the equivalent story on world-space background art.
+// assigned to this same camera, so UI and world share this exact rect.
+//
+// [ExecuteAlways] so the Scene view / Device Simulator preview the same fit
+// in Edit mode as at runtime; the camera's authored Size is just a placeholder.
+[ExecuteAlways]
 [DefaultExecutionOrder(-1000)]
 [RequireComponent(typeof(Camera))]
 public class CameraAspectFit : MonoBehaviour
@@ -40,18 +37,19 @@ public class CameraAspectFit : MonoBehaviour
     public ScreenFitProfile profile;
 
     Camera cam;
-    Camera backdropCam;
-    float designOrthographicSize; // captured from whatever this scene's camera was authored with
     int lastScreenWidth;
     int lastScreenHeight;
 
-    const string BackdropName = "LetterboxBackdrop";
-
-    void Awake()
+    void OnEnable()
     {
         cam = GetComponent<Camera>();
-        designOrthographicSize = cam.orthographicSize;
-        CreateBackdrop();
+        lastScreenWidth = lastScreenHeight = 0;
+        Apply();
+    }
+
+    void OnValidate()
+    {
+        if (cam == null) cam = GetComponent<Camera>();
         Apply();
     }
 
@@ -64,23 +62,6 @@ public class CameraAspectFit : MonoBehaviour
         if (Screen.width != lastScreenWidth || Screen.height != lastScreenHeight) Apply();
     }
 
-    void CreateBackdrop()
-    {
-        var go = new GameObject(BackdropName);
-        go.transform.SetParent(transform.parent, false);
-
-        backdropCam = go.AddComponent<Camera>();
-        backdropCam.clearFlags = CameraClearFlags.SolidColor;
-        backdropCam.backgroundColor = Color.black;
-        backdropCam.cullingMask = 0; // renders nothing of its own — a pure fill
-        backdropCam.orthographic = true;
-        backdropCam.rect = new Rect(0f, 0f, 1f, 1f);
-        backdropCam.depth = cam.depth - 1; // draws first; the main camera composites on top
-        backdropCam.useOcclusionCulling = false;
-        backdropCam.allowHDR = false;
-        backdropCam.allowMSAA = false;
-    }
-
     void Apply()
     {
         if (cam == null || profile == null) return;
@@ -89,23 +70,13 @@ public class CameraAspectFit : MonoBehaviour
         lastScreenHeight = Screen.height;
         if (lastScreenWidth <= 0 || lastScreenHeight <= 0) return;
 
-        float deviceAspect = (float)lastScreenWidth / lastScreenHeight;
+        float currentAspect = (float)lastScreenWidth / lastScreenHeight;
+        float targetAspect = profile.designWidth / profile.designLength;
 
-        if (deviceAspect >= profile.designAspect)
-        {
-            // Wide/square screen: never re-zoom — pillarbox the sides instead.
-            cam.orthographicSize = designOrthographicSize;
-            float w = profile.designAspect / deviceAspect;
-            cam.rect = new Rect((1f - w) * 0.5f, 0f, w, 1f);
-        }
-        else
-        {
-            // Narrow/tall screen: fill edge-to-edge, but zoom out just enough
-            // to keep the design's full width on screen — the width is never
-            // allowed to shrink below what the design authored.
-            cam.rect = new Rect(0f, 0f, 1f, 1f);
-            float designHalfWidth = designOrthographicSize * profile.designAspect;
-            cam.orthographicSize = designHalfWidth / deviceAspect;
-        }
+        cam.rect = new Rect(0f, 0f, 1f, 1f);
+
+        cam.orthographicSize = currentAspect > targetAspect
+            ? profile.designLength * 0.5f
+            : (profile.designWidth * 0.5f) / currentAspect;
     }
 }

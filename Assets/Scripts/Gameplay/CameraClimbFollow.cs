@@ -1,8 +1,8 @@
 using UnityEngine;
 
 // Scrolls the gameplay camera vertically so a tall level's climb stays in frame.
-// Classic levels are shorter than one screenful, and ConfigureBounds collapses
-// their travel range to a single point, so this component can sit on a Classic
+// Classic levels are shorter than one screenful, and the clamp collapses their
+// travel range to a single point, so this component can sit on a Classic
 // camera without moving it at all.
 [RequireComponent(typeof(Camera))]
 public class CameraClimbFollow : MonoBehaviour
@@ -18,8 +18,8 @@ public class CameraClimbFollow : MonoBehaviour
     public float smoothTime = 0.18f;
 
     [Header("Travel range — set by LevelController")]
-    public float minY;
-    public float maxY;
+    public float floorY;
+    public float ceilingY;
 
     Camera cam;
     float velocityY;
@@ -28,15 +28,14 @@ public class CameraClimbFollow : MonoBehaviour
     // own Awake, and Unity doesn't order Awake between objects.
     Camera Cam => cam != null ? cam : (cam = GetComponent<Camera>());
 
-    // floorY/ceilingY are the level's world bounds. The camera's centre is kept
-    // half a view inside them so neither edge is ever on screen; a level too short
-    // to allow that simply centres, which is every Classic level.
+    // floorY/ceilingY are the level's world bounds. The clamp is derived from the
+    // camera's current orthographic size every time it's needed, rather than
+    // baked in here, so it stays correct even if the aspect fit changes the
+    // camera's zoom after this is called (rotation, window resize).
     public void ConfigureBounds(float floorY, float ceilingY)
     {
-        float half = Cam.orthographicSize;
-        minY = floorY + half;
-        maxY = ceilingY - half;
-        if (maxY < minY) minY = maxY = (floorY + ceilingY) * 0.5f;
+        this.floorY = floorY;
+        this.ceilingY = ceilingY;
     }
 
     // Without this the camera would glide in from wherever the scene left it on
@@ -61,5 +60,12 @@ public class CameraClimbFollow : MonoBehaviour
         transform.position = pos;
     }
 
-    float DesiredY() => Mathf.Clamp(target.position.y + followOffsetY, minY, maxY);
+    float DesiredY()
+    {
+        float half = Cam.orthographicSize;
+        float minY = floorY + half;
+        float maxY = ceilingY - half;
+        if (maxY < minY) minY = maxY = (floorY + ceilingY) * 0.5f;
+        return Mathf.Clamp(target.position.y + followOffsetY, minY, maxY);
+    }
 }

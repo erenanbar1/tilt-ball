@@ -1,14 +1,15 @@
 using UnityEngine;
 
-// Shared screen-shape target for CameraAspectFit. designAspect describes the
-// physical screen the game was designed for (width / height) — the notch-class
-// device this project targets — not any particular scene's content scale or
-// zoom. Every scene's CameraAspectFit references the same asset so the
-// letterbox behaves identically everywhere.
+// Shared fit target for CameraAspectFit. designWidth/designLength are world
+// units describing the reference "screenful" of gameplay this game mode was
+// authored at — designLength is the vertical extent (world height),
+// designWidth the horizontal extent. Their ratio is the target aspect: above
+// it the camera fits to length, at or below it the camera fits to width. All
+// scenes of a given mode (e.g. every gameplay scene) share the same asset so
+// the fit behaves identically everywhere.
 [CreateAssetMenu(fileName = "ScreenFitProfile", menuName = "Game/Screen Fit Profile")]
 public class ScreenFitProfile : ScriptableObject
 {
-    // width / height of the design target. 1080x1920 — this project's
-    // CanvasScaler reference resolution — is 0.5625.
-    public float designAspect = 1080f / 1920f;
+    public float designWidth = 7.875f;
+    public float designLength = 14f;
 }

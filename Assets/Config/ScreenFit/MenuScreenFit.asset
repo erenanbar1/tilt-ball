@@ -12,4 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a7831adf1392fa5d40f341d9f3f98365, type: 3}
   m_Name: MenuScreenFit
   m_EditorClassIdentifier: Assembly-CSharp::ScreenFitProfile
-  designAspect: 0.5625
+  designWidth: 9.5625
+  designLength: 17
