@@ -1,27 +1,21 @@
 using UnityEngine;
 
+// One playable level. Create via Tools > Tilt Ball > New Classic/Tall Level
+// (which also makes the obstacle prefab and registers the level) — see
+// README "Adding a level". Classic vs Tall is decided by climbHeight alone.
 [CreateAssetMenu(fileName = "LevelConfig", menuName = "Game/Level Config")]
 public class LevelConfig : ScriptableObject
 {
-    public string levelId;  
+    // Position within its mode's list: unlock order and the number shown on
+    // the level-select node (index + 1). The catalogue sorts by this.
     public int levelIndex;
 
     // All obstacles for this level, grouped under one prefab and spawned into
     // ObstaclesRoot by LevelController. Null means the level has none (e.g. Level 1).
     public GameObject obstaclesPrefab;
 
-    // Art behind the level, covering whatever the camera fit leaves beyond the
-    // play area. Null keeps the scene's default background.
+    // Art behind the play area. Null keeps the scene's default background.
     public Sprite backgroundSprite;
-
-    // Not read by anything yet — ball/hole placement and level timing are
-    // currently identical across every level and stay scene-authored. Kept here
-    // as placeholders so a level that needs to vary them later doesn't require
-    // another migration. (Tall levels don't need winningHolePosition: the hole
-    // rides up with the summit, see LevelController.ApplyLevelGeometry.)
-    public Vector3 ballStartPosition;
-    public Vector3 winningHolePosition;
-    public float timeLimit;
 
     [Header("Tall levels")]
     // How far each end of the stick may rise above its spawn height — becomes
@@ -34,4 +28,7 @@ public class LevelConfig : ScriptableObject
     // Headroom above the stick's highest reachable point, so the summit isn't
     // flush against the top of the frame.
     public float ceilingPadding = 0.75f;
+
+    public bool IsTall => climbHeight > 0f;
+    public GameMode Mode => IsTall ? GameMode.Tall : GameMode.Classic;
 }

@@ -78,8 +78,18 @@ public class LevelController : MonoBehaviour
 
     void SpawnObstacles()
     {
+        if (obstaclesRoot == null) return;
+
+        // A LevelPreview instance should never survive into Play, but if one
+        // did (crash mid-edit, hooks skipped) it would double the obstacles.
+        for (int i = obstaclesRoot.childCount - 1; i >= 0; i--)
+        {
+            var child = obstaclesRoot.GetChild(i).gameObject;
+            if (LevelPreview.IsPreview(child)) Destroy(child);
+        }
+
         var currentLevel = LevelManager.Instance != null ? LevelManager.Instance.Current : null;
-        if (currentLevel == null || currentLevel.obstaclesPrefab == null || obstaclesRoot == null) return;
+        if (currentLevel == null || currentLevel.obstaclesPrefab == null) return;
 
         Instantiate(currentLevel.obstaclesPrefab, obstaclesRoot);
     }
