@@ -257,7 +257,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 7
+  orthographic size: 8.53645
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -508,8 +508,8 @@ RectTransform:
   - {fileID: 689073090}
   m_Father: {fileID: 1923369616}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.3241046, y: 0}
-  m_AnchorMax: {x: 0.6758954, y: 1}
+  m_AnchorMin: {x: 0.000011205673, y: 0}
+  m_AnchorMax: {x: 0.9999888, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -575,7 +575,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelController
   obstaclesRoot: {fileID: 211100575}
-  background: {fileID: 0}
+  background: {fileID: 1518261702}
   stick: {fileID: 0}
   cameraFollow: {fileID: 0}
   pulleys: {fileID: 0}
@@ -802,25 +802,13 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 784065064}
     m_Modifications:
-    - target: {fileID: 1648906315259575095, guid: e211be507ebf2c646ae51d2b4259cd4a, type: 3}
-      propertyPath: m_SortingOrder
-      value: -99
-      objectReference: {fileID: 0}
-    - target: {fileID: 2831038935425207854, guid: e211be507ebf2c646ae51d2b4259cd4a, type: 3}
-      propertyPath: m_LocalScale.x
-      value: 0.83861375
-      objectReference: {fileID: 0}
-    - target: {fileID: 2831038935425207854, guid: e211be507ebf2c646ae51d2b4259cd4a, type: 3}
-      propertyPath: m_LocalScale.y
-      value: 1.0353256
-      objectReference: {fileID: 0}
     - target: {fileID: 2831038935425207854, guid: e211be507ebf2c646ae51d2b4259cd4a, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0.0103
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2831038935425207854, guid: e211be507ebf2c646ae51d2b4259cd4a, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.1854
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2831038935425207854, guid: e211be507ebf2c646ae51d2b4259cd4a, type: 3}
       propertyPath: m_LocalPosition.z
@@ -868,6 +856,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 2831038935425207854, guid: e211be507ebf2c646ae51d2b4259cd4a, type: 3}
   m_PrefabInstance: {fileID: 1518261700}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1518261702 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4436649143852599411, guid: e211be507ebf2c646ae51d2b4259cd4a, type: 3}
+  m_PrefabInstance: {fileID: 1518261700}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8facfef4081e21c4ab0c92bd1c5e97ac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LevelBackground
 --- !u!1 &1859245033
 GameObject:
   m_ObjectHideFlags: 0
@@ -900,8 +899,8 @@ RectTransform:
   - {fileID: 1923369616}
   m_Father: {fileID: 1441304873}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMin: {x: 0, y: 0.039906103}
+  m_AnchorMax: {x: 1, y: 0.93075114}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -964,11 +963,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2831038935425207854, guid: 76a2ca96a531f984fb76917885b4e736, type: 3}
       propertyPath: m_LocalScale.x
-      value: 2.346485
+      value: 1.0353488
       objectReference: {fileID: 0}
     - target: {fileID: 2831038935425207854, guid: 76a2ca96a531f984fb76917885b4e736, type: 3}
       propertyPath: m_LocalScale.y
-      value: 2.346485
+      value: 1.0353488
       objectReference: {fileID: 0}
     - target: {fileID: 2831038935425207854, guid: 76a2ca96a531f984fb76917885b4e736, type: 3}
       propertyPath: m_LocalScale.z
@@ -976,7 +975,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2831038935425207854, guid: 76a2ca96a531f984fb76917885b4e736, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2831038935425207854, guid: 76a2ca96a531f984fb76917885b4e736, type: 3}
       propertyPath: m_LocalPosition.y
