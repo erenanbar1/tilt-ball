@@ -60,10 +60,10 @@ public class LevelSelectController : MonoBehaviour
         if (tallButton != null) tallButton.onClick.AddListener(PlayTall);
         if (settingsButton != null && settingsPanel != null) settingsButton.onClick.AddListener(settingsPanel.Open);
 
-        var gm = GameManager.Instance;
-        if (gm == null || content == null) return;
+        var lm = LevelManager.Instance;
+        if (lm == null || content == null) return;
 
-        BuildPath(gm.allLevels);
+        BuildPath(lm.classicLevels);
     }
 
     void BuildPath(LevelConfig[] levels)
@@ -151,12 +151,11 @@ public class LevelSelectController : MonoBehaviour
         button.interactable = unlocked;
         if (!unlocked) return;
 
-        var captured = level;
+        int captured = index;
         button.onClick.AddListener(() =>
         {
             AudioManager.PlayClick();
-            GameManager.Instance.SetMode(GameMode.Classic);
-            GameManager.Instance.currentLevel = captured;
+            if (!LevelManager.Instance.Select(GameMode.Classic, captured)) return;
             SceneLoader.Instance.LoadGameplay();
         });
     }
@@ -187,16 +186,15 @@ public class LevelSelectController : MonoBehaviour
     {
         AudioManager.PlayClick();
 
-        var gm = GameManager.Instance;
-        var tall = gm != null ? gm.tallLevels : null;
+        var lm = LevelManager.Instance;
+        var tall = lm != null ? lm.tallLevels : null;
         if (tall == null || tall.Length == 0) return;
 
         int index = SaveManager.Instance != null
             ? Mathf.Clamp(SaveManager.Instance.HighestUnlocked(GameMode.Tall), 0, tall.Length - 1)
             : 0;
 
-        gm.SetMode(GameMode.Tall);
-        gm.currentLevel = tall[index];
+        if (!lm.Select(GameMode.Tall, index)) return;
         SceneLoader.Instance.LoadGameplay();
     }
 

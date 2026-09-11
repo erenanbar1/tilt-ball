@@ -47,19 +47,9 @@ public class WinScreenController : MonoBehaviour
     {
         AudioManager.PlayClick();
 
-        var gm = GameManager.Instance;
-        // Advances within whichever mode's list is active, so finishing a Tall
-        // level leads to the next Tall one rather than back into Classic.
-        var levels = gm != null ? gm.CurrentLevels : null;
-        if (levels == null || levels.Length == 0) return;
+        if (LevelManager.Instance == null || !LevelManager.Instance.Advance()) return;
 
-        int nextIndex = gm.CurrentLevelIndex() + 1;
-        if (nextIndex >= levels.Length) nextIndex = 0; // loop back to the first level
-
-        if (SaveManager.Instance != null) SaveManager.Instance.UnlockLevel(nextIndex);
-
-        gm.currentLevel = levels[nextIndex];
-        gm.SetState(GameState.Playing);
+        GameManager.Instance.SetState(GameState.Playing);
         SceneLoader.Instance.LoadGameplay();
     }
 }

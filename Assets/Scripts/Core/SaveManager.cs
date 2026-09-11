@@ -59,8 +59,8 @@ public class SaveManager : MonoBehaviour
     public int HighestUnlocked(GameMode mode) =>
         mode == GameMode.Tall ? HighestUnlockedTallLevelIndex : HighestUnlockedLevelIndex;
 
-    // Falls back to Classic if GameManager isn't up yet, which matches how the
+    // Falls back to Classic if LevelManager isn't up yet, which matches how the
     // game behaved before there was a second mode.
     static GameMode ActiveMode() =>
-        GameManager.Instance != null ? GameManager.Instance.CurrentMode : GameMode.Classic;
+        LevelManager.Instance != null ? LevelManager.Instance.Mode : GameMode.Classic;
 }
