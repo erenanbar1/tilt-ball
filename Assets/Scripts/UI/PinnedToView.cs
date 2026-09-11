@@ -3,9 +3,7 @@ using UnityEngine;
 // Pins this object to a fixed fraction of the camera's current view rather
 // than a fixed world position, so it doesn't drift when CameraAspectFit grows
 // the camera's orthographic size on a taller/narrower device to keep the
-// design's width on screen. BackgroundFitter always stretches the background
-// to exactly fill that same view, so mapping to a view fraction here is
-// equivalent to pinning to a fixed spot on the background art itself.
+// design's width on screen.
 //
 // (0.5, 0.5) is dead centre; (0.5, 0) is bottom-centre — same convention as a
 // UI anchor. Only X/Y move; Z (and sorting) stay whatever they were authored

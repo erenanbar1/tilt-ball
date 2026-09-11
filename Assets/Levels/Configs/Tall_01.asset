@@ -15,7 +15,7 @@ MonoBehaviour:
   levelId: T1
   levelIndex: 0
   obstaclesPrefab: {fileID: 4691862327422803708, guid: 87caf0f55b56ca445ab2f180c5f4269b, type: 3}
-  backgroundSprite: {fileID: -7613286569492515981, guid: 49ff1ac313179ab42aa7eb818eed1957, type: 3}
+  backgroundSprite: {fileID: 21300000, guid: 49ff1ac313179ab42aa7eb818eed1957, type: 3}
   ballStartPosition: {x: 0, y: 0, z: 0}
   winningHolePosition: {x: 0, y: 0, z: 0}
   timeLimit: 0
