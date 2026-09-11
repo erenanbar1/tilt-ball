@@ -11,7 +11,7 @@ using UnityEngine;
 public class LevelController : MonoBehaviour
 {
     public Transform obstaclesRoot;
-    public LevelBackground background;
+    public SpriteRenderer background;
 
     [Header("Tall levels — leave empty in the Classic scene")]
     public StickController stick;
@@ -19,32 +19,26 @@ public class LevelController : MonoBehaviour
     public Transform pulleys;
     public Transform winningHole;
 
-    float floorY;
-    float ceilingY;
-    bool hasClimbRange;
-
     void Awake()
     {
+        ApplyBackground();
         ApplyLevelGeometry();
         SpawnObstacles();
     }
 
-    // Deferred to Start so the camera lands on a rig that has finished waking up,
-    // rather than gliding in from wherever the scene left it — and so the
-    // background's own OnEnable fit can't run after ours and undo it.
-    void Start()
-    {
-        ApplyBackground();
-        if (cameraFollow != null) cameraFollow.SnapToTarget();
-    }
-
     void ApplyBackground()
     {
-        if (background == null) return;
-
         var config = GameManager.Instance != null ? GameManager.Instance.currentLevel : null;
-        if (config != null && config.backgroundSprite != null) background.SetSprite(config.backgroundSprite);
-        if (hasClimbRange) background.Fit(floorY, ceilingY);
+        if (config == null || config.backgroundSprite == null || background == null) return;
+
+        background.sprite = config.backgroundSprite;
+    }
+
+    // Deferred to Start so the camera lands on a rig that has finished waking up,
+    // rather than gliding in from wherever the scene left it.
+    void Start()
+    {
+        if (cameraFollow != null) cameraFollow.SnapToTarget();
     }
 
     // Stretches the scene's climb to the height this level asks for.
@@ -69,11 +63,8 @@ public class LevelController : MonoBehaviour
         if (pulleys != null) pulleys.position += new Vector3(0f, rise, 0f);
         if (winningHole != null) winningHole.position += new Vector3(0f, rise, 0f);
 
-        floorY = config.levelFloorY;
-        ceilingY = spawnY + config.climbHeight + config.ceilingPadding;
-        hasClimbRange = true;
-
-        if (cameraFollow != null) cameraFollow.ConfigureBounds(floorY, ceilingY);
+        if (cameraFollow != null)
+            cameraFollow.ConfigureBounds(config.levelFloorY, spawnY + config.climbHeight + config.ceilingPadding);
     }
 
     void SpawnObstacles()
