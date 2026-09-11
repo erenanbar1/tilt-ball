@@ -16,16 +16,16 @@ described separately in `level-design.md`.
 ## 1. Scene graph and navigation
 
 The game is one persistent scene plus a set of additively-swapped "screen" scenes — never a single-scene reload.
-Only four scenes are ever swapped in as the **main** scene: MainMenu, LevelSelect, Gameplay, GameplayTall.
+Only three scenes are ever swapped in as the **main** scene: MainMenu, LevelSelect, Gameplay.
 PauseMenu, WinScreen and GameOver are a different kind of scene entirely — each is loaded additively **on top of**
-whichever main scene (in practice always Gameplay/GameplayTall) is still running, and none of the three carries a
+whichever main scene (in practice always Gameplay) is still running, and none of the three carries a
 `Main Camera` or `EventSystem` of its own; they rely on the scene underneath still being loaded and rendering.
 
 ```mermaid
 flowchart TD
     Bootstrap["Bootstrap<br/>(loaded once, never unloaded)"] -->|BootstrapRunner.Start| MainMenu
     MainMenu -->|Play| LevelSelect
-    LevelSelect -->|pick unlocked node on the Classic path| GP["Gameplay or GameplayTall<br/>(SceneLoader picks by mode)"]
+    LevelSelect -->|pick unlocked node on the Classic path| GP["Gameplay<br/>(one scene for both modes)"]
     LevelSelect -->|Tall side-quest button → mode Tall| GP
     GP -.->|GameManager: Win, additive overlay| WinScreen
     GP -.->|GameManager: Lose, additive overlay| GameOver
@@ -41,8 +41,8 @@ flowchart TD
 routes through `SceneLoader.Instance` (or, for pause/win/lose, through `GameManager`; see below) instead. Its
 `SwapTo(name)` unloads whatever main scene is currently up and loads the new one additively, so Bootstrap (and
 anything else additive) is never touched. It backs the four calls callers actually reach for — `GoToMainMenu()`,
-`GoToLevelSelect()`, `LoadGameplay()` and `RetryLevel()` — the last two routed through `ActiveGameplayScene()` so
-they pick Gameplay or GameplayTall by `GameManager.CurrentMode` without the caller knowing a second mode exists.
+`GoToLevelSelect()`, `LoadGameplay()` and `RetryLevel()`. There is a single gameplay scene for both modes —
+everything Tall-specific is data on the `LevelConfig`, applied by `LevelController` at load (§8).
 
 `PauseMenu`, `WinScreen` and `GameOver` are the exceptions to the swap model, and all follow the same pattern:
 loaded additively over whatever's still running rather than swapped in as a main scene of its own.
@@ -78,7 +78,7 @@ two buttons are Resume and Main Menu.
 | Script | Responsibility |
 |---|---|
 | `AudioManager` | One looping `AudioSource` for music, one one-shot source for SFX, so SFX never interrupts music. Also owns menu-click sound, win/lose ducking (below), and the persisted music/SFX on-off toggles (§6). |
-| `SceneLoader` | Owns all scene transitions (§1), the pause/win/lose overlays, and the mode→gameplay-scene choice. |
+| `SceneLoader` | Owns all scene transitions (§1) and the pause/win/lose overlays. |
 | `GameManager` | Tracks `CurrentState` (`Playing/Win/Lose/Pause`), `CurrentMode` (`Classic/Tall`), the selected `currentLevel`, both level lists (`allLevels`/`tallLevels`), and fires `OnStateChanged`. Holds no obstacle/geometry knowledge, and never touches scenes or `Time.timeScale` itself — purely run state. |
 | `SaveManager` | Persists one unlock index **per mode** via `PlayerPrefs`; each monotonically increasing. |
 | `BootstrapRunner` | The handoff: in `Start()` (guaranteed to run after every other object's `Awake`) calls `SceneLoader.Instance.GoToMainMenu()`. |
@@ -134,7 +134,7 @@ Locked nodes render dimmed and are non-interactable. Tapping an unlocked node se
 explicitly calls `GameManager.SetMode(GameMode.Classic)` (LevelSelect no longer assumes a mode was chosen before
 it loaded — see §5), and calls `SceneLoader.LoadGameplay()`. **Tall doesn't appear on the path at all** — see §5's
 "side quest" button, which sets `GameMode.Tall` and jumps straight into whichever Tall level `SaveManager` has
-already unlocked, with no per-level picker of its own. In whichever gameplay scene loads, **`LevelController`**
+already unlocked, with no per-level picker of its own. In the gameplay scene, **`LevelController`**
 reads `GameManager.currentLevel` in `Awake`, applies the climb geometry, then instantiates its `obstaclesPrefab`
 under an `ObstaclesRoot` transform. On win, `WinScreenController` advances to `CurrentLevels[index + 1]` (looping
 back to level 0 at the end) and calls `SaveManager.UnlockLevel(nextIndex)` before loading gameplay again — so
@@ -263,8 +263,8 @@ identically on every screen regardless of which controller owns it. `1080×1920`
 `ScreenFitProfile.designAspect` defaults to (§ below), so the UI's own scaling and the world camera's letterboxing
 are tuned to the same design target.
 
-Render mode is where the eight scenes actually split into two groups:
-- **Screen Space - Camera**, bound to a real camera, on MainMenu, LevelSelect, Gameplay and GameplayTall (each
+Render mode is where the seven scenes actually split into two groups:
+- **Screen Space - Camera**, bound to a real camera, on MainMenu, LevelSelect and Gameplay (each
   bound to its own `CameraAspectFit`-managed camera in the Inspector) and on WinScreen/GameOver (bound at
   **runtime** instead — both controllers' `Awake` sets `GetComponent<Canvas>().worldCamera = Camera.main`, since
   neither scene carries a camera of its own to assign in the Inspector; §1 explains why). This mode is what makes
@@ -277,8 +277,8 @@ Render mode is where the eight scenes actually split into two groups:
 
 ### Responsive camera fit
 
-**`CameraAspectFit`** (`[DefaultExecutionOrder(-1000)]`) lives on exactly the four cameras the "main" scenes each
-own — Gameplay, GameplayTall, LevelSelect and MainMenu — and fits that camera's world content to the device the
+**`CameraAspectFit`** (`[DefaultExecutionOrder(-1000)]`) lives on exactly the three cameras the "main" scenes each
+own — Gameplay, LevelSelect and MainMenu — and fits that camera's world content to the device the
 way a fixed-design mobile layout is meant to: the visible world **width** is held constant on every device —
 `designOrthographicSize * profile.designAspect`, captured from whatever the scene's camera was authored with — so
 nothing at the design's horizontal edges (the stick, the pulleys) can ever be cropped, on any aspect ratio. Height
@@ -297,7 +297,7 @@ as authored regardless of which branch is active. It also creates and owns a sec
 runtime (solid black, `cullingMask = 0`, `depth` one below the main camera) itself, since a camera's own Clear
 Flags only clear its own viewport rect — without a backdrop camera, whatever the GPU last drew would show through
 outside the game's rect. `WinScreen`, `GameOver` and `PauseMenu` don't get a `CameraAspectFit` of their own —
-they're additive overlays over Gameplay/GameplayTall (§1) and simply inherit whatever fit is already applied to
+they're additive overlays over Gameplay (§1) and simply inherit whatever fit is already applied to
 the camera underneath.
 
 **`ScreenFitProfile`** is the one shared `ScriptableObject` asset every scene's `CameraAspectFit` references, so
@@ -317,7 +317,7 @@ as anchors. On a device where the letterbox bars already clear the cutout the in
 camera rect and this is a no-op; on an ordinary full-bleed phone it reduces to the plain safe-area inset. It
 defaults to the parent `Canvas`'s own `worldCamera` — exactly the camera `CameraAspectFit` manages, and for
 WinScreen/GameOver exactly the camera their controller bound at runtime — so it needs no manual wiring in the
-common case. It's present in six of the eight scenes: MainMenu, LevelSelect, Gameplay, GameplayTall, WinScreen
+common case. It's present in five of the seven scenes: MainMenu, LevelSelect, Gameplay, WinScreen
 and GameOver. It's absent from PauseMenu (Overlay-mode canvas, no camera rect to intersect against) and Bootstrap
 (no canvas at all).
 
@@ -406,9 +406,10 @@ up to follow the rig. Nothing in `StickController`, `BallOnPlatformController`, 
 changed to support this; they were already written in world space with no notion of the camera. It's reached
 through LevelSelect's side-quest button rather than a level list of its own — see §5.
 
-`GameplayTall.unity` is a duplicate of `Gameplay.unity` with two differences: `CameraClimbFollow` on its
-`Main Camera`, and `LevelController`'s four geometry references wired up (they stay empty in the Classic scene,
-which is what keeps Classic's behaviour identical).
+There is no separate Tall scene: `Gameplay.unity` carries `CameraClimbFollow` on its `Main Camera` and has
+`LevelController`'s geometry references wired for every level. With `climbHeight = 0` (every Classic config)
+`ApplyLevelGeometry` returns early and the camera's travel range collapses to a point, which is what keeps
+Classic's behaviour identical.
 
 ### Stretching the scene to the level
 

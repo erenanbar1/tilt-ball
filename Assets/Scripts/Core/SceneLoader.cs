@@ -11,7 +11,6 @@ public class SceneLoader : MonoBehaviour
     const string MainMenuScene = "MainMenu";
     const string LevelSelectScene = "LevelSelect";
     const string GameplayScene = "Gameplay";
-    const string TallGameplayScene = "GameplayTall";
     const string PauseMenuScene = "PauseMenu";
     const string WinScreenScene = "WinScreen";
     const string GameOverScene = "GameOver";
@@ -66,17 +65,11 @@ public class SceneLoader : MonoBehaviour
 
     public void GoToMainMenu() { UnloadResultScreenIfAny(); SwapTo(MainMenuScene); }
     public void GoToLevelSelect() { UnloadResultScreenIfAny(); SwapTo(LevelSelectScene); }
-    // Both go through the mode, so every existing caller — LevelSelect picking a
-    // level, the win screen's Next Level, Retry, and the pause menu's Restart —
-    // lands in the right scene without knowing a second mode exists.
-    public void LoadGameplay() { UnloadResultScreenIfAny(); SwapTo(ActiveGameplayScene()); }
-    public void RetryLevel() { UnloadResultScreenIfAny(); SwapTo(ActiveGameplayScene()); }
-
-    string ActiveGameplayScene()
-    {
-        bool tall = GameManager.Instance != null && GameManager.Instance.CurrentMode == GameMode.Tall;
-        return tall ? TallGameplayScene : GameplayScene;
-    }
+    // One gameplay scene serves both modes: everything Tall-specific (climb
+    // height, camera range, background) is data on the LevelConfig, applied by
+    // LevelController at load.
+    public void LoadGameplay() { UnloadResultScreenIfAny(); SwapTo(GameplayScene); }
+    public void RetryLevel() { UnloadResultScreenIfAny(); SwapTo(GameplayScene); }
 
     // Private on purpose: pausing and unpausing go through GameManager's state so
     // there's one source of truth for whether the run is paused, the same as win
