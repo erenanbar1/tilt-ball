@@ -79,8 +79,7 @@ two buttons are Resume and Main Menu.
 |---|---|
 | `AudioManager` | One looping `AudioSource` for music, one one-shot source for SFX, so SFX never interrupts music. Also owns menu-click sound, win/lose ducking (below), and the persisted music/SFX on-off toggles (§6). |
 | `SceneLoader` | Owns all scene transitions (§1) and the pause/win/lose overlays. |
-| `GameManager` | Tracks `CurrentState` (`Playing/Win/Lose/Pause`) and fires `OnStateChanged`. Knows nothing about levels, and never touches scenes or `Time.timeScale` itself — purely run state. |
-| `LevelManager` | Owns the level catalogue (`classicLevels`/`tallLevels`) and the selection: `Mode` (`Classic/Tall`), `Current`, `CurrentIndex`. Selection only changes through `Select(mode, index)` and `Advance()`, so mode and level can never disagree; `Advance()` also unlocks the next level via `SaveManager`. |
+| `GameManager` | Tracks `CurrentState` (`Playing/Win/Lose/Pause`), `CurrentMode` (`Classic/Tall`), the selected `currentLevel`, both level lists (`allLevels`/`tallLevels`), and fires `OnStateChanged`. Holds no obstacle/geometry knowledge, and never touches scenes or `Time.timeScale` itself — purely run state. |
 | `SaveManager` | Persists one unlock index **per mode** via `PlayerPrefs`; each monotonically increasing. |
 | `BootstrapRunner` | The handoff: in `Start()` (guaranteed to run after every other object's `Awake`) calls `SceneLoader.Instance.GoToMainMenu()`. |
 
@@ -128,16 +127,17 @@ makes every pre-existing Classic config work untouched: they simply don't carry 
 the geometry pass below early-outs.
 
 Flow: `LevelSelectController` (in the LevelSelect scene) procedurally builds a single vertical **scrolling path**
-for the Classic list (`LevelManager.classicLevels`) — one node per level, level 1 at the bottom, connected by a lit
+for the Classic list (`GameManager.allLevels`) — one node per level, level 1 at the bottom, connected by a lit
 trail whose reached/locked segments are colored from `SaveManager.HighestUnlocked(Classic)`; the node the player is
 actually up to gets a glow behind it, and the scroll view opens already centered on it rather than at level 1.
-Locked nodes render dimmed and are non-interactable. Tapping an unlocked node calls `LevelManager.Select(GameMode.Classic, index)`
-(LevelSelect doesn't assume a mode was chosen before it loaded — see §5) and then `SceneLoader.LoadGameplay()`. **Tall doesn't appear on the path at all** — see §5's
+Locked nodes render dimmed and are non-interactable. Tapping an unlocked node sets `GameManager.currentLevel`,
+explicitly calls `GameManager.SetMode(GameMode.Classic)` (LevelSelect no longer assumes a mode was chosen before
+it loaded — see §5), and calls `SceneLoader.LoadGameplay()`. **Tall doesn't appear on the path at all** — see §5's
 "side quest" button, which sets `GameMode.Tall` and jumps straight into whichever Tall level `SaveManager` has
 already unlocked, with no per-level picker of its own. In the gameplay scene, **`LevelController`**
-reads `LevelManager.Current` in `Awake`, applies the climb geometry, then instantiates its `obstaclesPrefab`
-under an `ObstaclesRoot` transform. On win, `WinScreenController` calls `LevelManager.Advance()` (next in the active mode's list, looping
-back to level 0 at the end, unlocking it through `SaveManager`) before loading gameplay again — so
+reads `GameManager.currentLevel` in `Awake`, applies the climb geometry, then instantiates its `obstaclesPrefab`
+under an `ObstaclesRoot` transform. On win, `WinScreenController` advances to `CurrentLevels[index + 1]` (looping
+back to level 0 at the end) and calls `SaveManager.UnlockLevel(nextIndex)` before loading gameplay again — so
 finishing a Tall level leads to the next Tall level, not back into Classic.
 
 Obstacle prefabs live in `Assets/Levels/ObstaclePrefabs/` (`Level_02_Obstacles.prefab` … `Level_18_Obstacles.prefab`,
@@ -376,9 +376,9 @@ order between the two managers that own it:
 
 The two unlock indices are only ever raised (finishing an earlier level again can't lock out later ones); the
 Classic key is spelled exactly as it always was — renaming it would read back zero and silently reset every
-existing player's progress. `SaveManager` loads both in `Awake` so it never depends on `LevelManager` having woken
+existing player's progress. `SaveManager` loads both in `Awake` so it never depends on `GameManager` having woken
 first, and the one-argument `IsUnlocked`/`UnlockLevel` resolve the mode themselves (falling back to Classic if
-`LevelManager` isn't up yet), which is why no call site had to learn about modes. Two-argument overloads exist for
+`GameManager` isn't up yet), which is why no call site had to learn about modes. Two-argument overloads exist for
 addressing a specific mode's track directly.
 
 The two audio toggles default to `true` and mute via `AudioSource.mute` rather than by zeroing volume, so they

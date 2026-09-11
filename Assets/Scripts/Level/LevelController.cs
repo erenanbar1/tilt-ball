@@ -1,13 +1,13 @@
 using UnityEngine;
 
-// Lives on the Level root in the gameplay scene. Reads LevelManager.Current
+// Lives on the Level root in a gameplay scene. Reads GameManager.currentLevel
 // — set by LevelSelect before Gameplay was loaded — and applies it to the scene:
 // the climb geometry first, then the obstacles. No progression-tracking of its
-// own: LevelManager is the persistent source of truth for which level is active,
+// own: GameManager is the persistent source of truth for which level is active,
 // since it lives in Bootstrap and survives every scene swap.
 //
-// Classic configs have climbHeight = 0, so the geometry step is a no-op for
-// them and the one scene-authored layout is used as-is.
+// The geometry references below are left empty in the Classic scene, where every
+// level shares one scene-authored layout. Only the tall scene wires them.
 public class LevelController : MonoBehaviour
 {
     public Transform obstaclesRoot;
@@ -42,7 +42,7 @@ public class LevelController : MonoBehaviour
     {
         if (background == null) return;
 
-        var config = LevelManager.Instance != null ? LevelManager.Instance.Current : null;
+        var config = GameManager.Instance != null ? GameManager.Instance.currentLevel : null;
         if (config != null && config.backgroundSprite != null) background.SetSprite(config.backgroundSprite);
         if (hasClimbRange) background.Fit(floorY, ceilingY);
     }
@@ -59,7 +59,7 @@ public class LevelController : MonoBehaviour
     // minOffset are captured in its own Awake and must not be touched from here.
     void ApplyLevelGeometry()
     {
-        var config = LevelManager.Instance != null ? LevelManager.Instance.Current : null;
+        var config = GameManager.Instance != null ? GameManager.Instance.currentLevel : null;
         if (config == null || config.climbHeight <= 0f || stick == null) return;
 
         float spawnY = stick.transform.position.y;
@@ -78,7 +78,7 @@ public class LevelController : MonoBehaviour
 
     void SpawnObstacles()
     {
-        var currentLevel = LevelManager.Instance != null ? LevelManager.Instance.Current : null;
+        var currentLevel = GameManager.Instance != null ? GameManager.Instance.currentLevel : null;
         if (currentLevel == null || currentLevel.obstaclesPrefab == null || obstaclesRoot == null) return;
 
         Instantiate(currentLevel.obstaclesPrefab, obstaclesRoot);
