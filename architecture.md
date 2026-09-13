@@ -16,16 +16,16 @@ described separately in `level-design.md`.
 ## 1. Scene graph and navigation
 
 The game is one persistent scene plus a set of additively-swapped "screen" scenes — never a single-scene reload.
-Only four scenes are ever swapped in as the **main** scene: MainMenu, LevelSelect, Gameplay, GameplayTall.
+Only three scenes are ever swapped in as the **main** scene: MainMenu, LevelSelect, Gameplay.
 PauseMenu, WinScreen and GameOver are a different kind of scene entirely — each is loaded additively **on top of**
-whichever main scene (in practice always Gameplay/GameplayTall) is still running, and none of the three carries a
+whichever main scene (in practice always Gameplay) is still running, and none of the three carries a
 `Main Camera` or `EventSystem` of its own; they rely on the scene underneath still being loaded and rendering.
 
 ```mermaid
 flowchart TD
     Bootstrap["Bootstrap<br/>(loaded once, never unloaded)"] -->|BootstrapRunner.Start| MainMenu
     MainMenu -->|Play| LevelSelect
-    LevelSelect -->|pick unlocked node on the Classic path| GP["Gameplay or GameplayTall<br/>(SceneLoader picks by mode)"]
+    LevelSelect -->|pick unlocked node on the Classic path| GP["Gameplay<br/>(one scene, sized per level)"]
     LevelSelect -->|Tall side-quest button → mode Tall| GP
     GP -.->|GameManager: Win, additive overlay| WinScreen
     GP -.->|GameManager: Lose, additive overlay| GameOver
@@ -41,8 +41,8 @@ flowchart TD
 routes through `SceneLoader.Instance` (or, for pause/win/lose, through `GameManager`; see below) instead. Its
 `SwapTo(name)` unloads whatever main scene is currently up and loads the new one additively, so Bootstrap (and
 anything else additive) is never touched. It backs the four calls callers actually reach for — `GoToMainMenu()`,
-`GoToLevelSelect()`, `LoadGameplay()` and `RetryLevel()` — the last two routed through `ActiveGameplayScene()` so
-they pick Gameplay or GameplayTall by `GameManager.CurrentMode` without the caller knowing a second mode exists.
+`GoToLevelSelect()`, `LoadGameplay()` and `RetryLevel()`. Both modes load the same Gameplay scene — how tall a
+level plays is data on its `LevelConfig` (`levelLength`, §8), not a choice of scene.
 
 `PauseMenu`, `WinScreen` and `GameOver` are the exceptions to the swap model, and all follow the same pattern:
 loaded additively over whatever's still running rather than swapped in as a main scene of its own.
@@ -116,15 +116,14 @@ now-removed `LevelLoader`, no longer applies — see [Cleanup history](#cleanup-
 ## 3. Level system
 
 `LevelConfig` (`ScriptableObject`, `Assets/Levels/Configs/`) holds `levelId`, `levelIndex`, and an
-`obstaclesPrefab`, plus three fields that describe a tall level's climb (§8): `climbHeight`, `levelFloorY` and
-`ceilingPadding`.
+`obstaclesPrefab`, a `backgroundSprite`, and `levelLength` — the one number that decides how tall the level plays (§8).
 `ballStartPosition`, `winningHolePosition` and `timeLimit` are placeholder fields — not read by anything, since
 ball/hole placement and timing stay scene-authored in both modes. Twenty configs exist — `Level_01`…`Level_18`
 for Classic, `Tall_01`/`Tall_02` for Tall.
 
-`climbHeight` defaults to `0`, which means *leave the scene's own `StickController.maxOffset` alone*. That's what
-makes every pre-existing Classic config work untouched: they simply don't carry the field, so they read as 0 and
-the geometry pass below early-outs.
+`levelLength` defaults to `0`, which means *one screenful — the scene exactly as authored*. That's what makes every
+pre-existing Classic config work untouched: they simply don't carry the field, so they read as 0 and the geometry
+pass adds nothing.
 
 Flow: `LevelSelectController` (in the LevelSelect scene) procedurally builds a single vertical **scrolling path**
 for the Classic list (`GameManager.allLevels`) — one node per level, level 1 at the bottom, connected by a lit
@@ -264,7 +263,7 @@ identically on every screen regardless of which controller owns it. `1080×1920`
 are tuned to the same design target.
 
 Render mode is where the eight scenes actually split into two groups:
-- **Screen Space - Camera**, bound to a real camera, on MainMenu, LevelSelect, Gameplay and GameplayTall (each
+- **Screen Space - Camera**, bound to a real camera, on MainMenu, LevelSelect and Gameplay (each
   bound to its own `CameraAspectFit`-managed camera in the Inspector) and on WinScreen/GameOver (bound at
   **runtime** instead — both controllers' `Awake` sets `GetComponent<Canvas>().worldCamera = Camera.main`, since
   neither scene carries a camera of its own to assign in the Inspector; §1 explains why). This mode is what makes
@@ -277,8 +276,8 @@ Render mode is where the eight scenes actually split into two groups:
 
 ### Responsive camera fit
 
-**`CameraAspectFit`** (`[DefaultExecutionOrder(-1000)]`) lives on exactly the four cameras the "main" scenes each
-own — Gameplay, GameplayTall, LevelSelect and MainMenu — and fits that camera's world content to the device the
+**`CameraAspectFit`** (`[DefaultExecutionOrder(-1000)]`) lives on exactly the three cameras the "main" scenes each
+own — Gameplay, LevelSelect and MainMenu — and fits that camera's world content to the device the
 way a fixed-design mobile layout is meant to: the visible world **width** is held constant on every device —
 `designOrthographicSize * profile.designAspect`, captured from whatever the scene's camera was authored with — so
 nothing at the design's horizontal edges (the stick, the pulleys) can ever be cropped, on any aspect ratio. Height
@@ -297,7 +296,7 @@ as authored regardless of which branch is active. It also creates and owns a sec
 runtime (solid black, `cullingMask = 0`, `depth` one below the main camera) itself, since a camera's own Clear
 Flags only clear its own viewport rect — without a backdrop camera, whatever the GPU last drew would show through
 outside the game's rect. `WinScreen`, `GameOver` and `PauseMenu` don't get a `CameraAspectFit` of their own —
-they're additive overlays over Gameplay/GameplayTall (§1) and simply inherit whatever fit is already applied to
+they're additive overlays over Gameplay (§1) and simply inherit whatever fit is already applied to
 the camera underneath.
 
 **`ScreenFitProfile`** is the one shared `ScriptableObject` asset every scene's `CameraAspectFit` references, so
@@ -317,8 +316,8 @@ as anchors. On a device where the letterbox bars already clear the cutout the in
 camera rect and this is a no-op; on an ordinary full-bleed phone it reduces to the plain safe-area inset. It
 defaults to the parent `Canvas`'s own `worldCamera` — exactly the camera `CameraAspectFit` manages, and for
 WinScreen/GameOver exactly the camera their controller bound at runtime — so it needs no manual wiring in the
-common case. It's present in six of the eight scenes: MainMenu, LevelSelect, Gameplay, GameplayTall, WinScreen
-and GameOver. It's absent from PauseMenu (Overlay-mode canvas, no camera rect to intersect against) and Bootstrap
+common case. It's present in five of the seven scenes: MainMenu, LevelSelect, Gameplay, WinScreen and
+GameOver. It's absent from PauseMenu (Overlay-mode canvas, no camera rect to intersect against) and Bootstrap
 (no canvas at all).
 
 **`PinnedToView`** (`[ExecuteAlways]`) pins an object to a fixed fraction of the camera's *current* view — `(0.5,
@@ -406,25 +405,29 @@ up to follow the rig. Nothing in `StickController`, `BallOnPlatformController`, 
 changed to support this; they were already written in world space with no notion of the camera. It's reached
 through LevelSelect's side-quest button rather than a level list of its own — see §5.
 
-`GameplayTall.unity` is a duplicate of `Gameplay.unity` with two differences: `CameraClimbFollow` on its
-`Main Camera`, and `LevelController`'s four geometry references wired up (they stay empty in the Classic scene,
-which is what keeps Classic's behaviour identical).
+There is no separate Tall scene. `Gameplay.unity` is authored as exactly **one screenful** —
+`ScreenFitProfile.designLength` (17.07 world units) tall, centred on the `Level` root — and always carries
+`CameraClimbFollow` on its `Main Camera` with `LevelController`'s geometry references wired. A level is Classic or
+Tall purely by its `LevelConfig.levelLength`.
 
 ### Stretching the scene to the level
 
-`LevelController.ApplyLevelGeometry()` runs in `Awake` and, for any config with `climbHeight > 0`:
+`LevelController.ApplyLevelGeometry()` runs in `Awake`:
 
-1. Sets `StickController.maxOffset` to `climbHeight`.
-2. Lifts the `Pulleys` group and the `WinningHole` by `rise = climbHeight - maxOffset` — *the same delta the
-   summit moved*.
-3. Hands the camera its bounds: floor `levelFloorY`, ceiling `stickSpawnY + climbHeight + ceilingPadding`.
+1. `length = max(config.levelLength, profile.designLength)`; `extra = length - designLength`. A Classic config
+   (`levelLength 0`) gives `extra 0`.
+2. Floor is the bottom of the authored screenful (`-8.54`); ceiling is `floor + length`.
+3. If `extra > 0`: adds `extra` to `StickController.maxOffset`, and lifts the `Pulleys` group and the
+   `WinningHole` by the same `extra`.
+4. Hands `floor`/`ceiling` to `CameraClimbFollow` — always, Classic included — and, from `Start`, to
+   `LevelBackground.Fit` so the level panel covers the whole climb.
 
-Step 2 is the piece worth understanding. Rather than giving each object a per-level coordinate, everything that
+Step 3 is the piece worth understanding. Rather than giving each object a per-level coordinate, everything that
 belongs at the top of the climb is shifted by however much the top moved, so the rig keeps whatever proportions
-the scene was authored with at any height. In the Classic scene the stick spawns at `y = -4.47` and climbs 10.5
-to a summit of `6.03`, with the pulleys at `5.30` and the hole at `5.28` clustered just beneath it. `Tall_01`
-asks for `climbHeight 34`, so `rise = 23.5` and those two land at `28.80` and `28.78` — still just beneath the
-new summit of `29.53`.
+the scene was authored with at any length. Authored, the stick spawns at `y = -4.47` and climbs 10.5 to a summit
+of `6.03`, with the pulleys at `4.50` and the hole at `4.00` just beneath it. `Tall_01` asks for `levelLength 42`,
+so `extra = 24.93` and those land at `29.43` and `28.93` — still just beneath the new summit of `30.96`, with the
+same headroom to the ceiling (`33.46`) that a Classic level has.
 
 **Only `maxOffset` is ever written on the stick.** It's re-read every `FixedUpdate`, so undefined `Awake` order
 between GameObjects can't bite. The stick's position and `minOffset` are captured in `StickController.Awake`
@@ -440,10 +443,10 @@ whose 2D confiner would want a per-level bounding shape.
   ball's height swings as it rolls along the tilt, which would shake the camera for reasons the player didn't cause.
 - `ConfigureBounds(floorY, ceilingY)` keeps the camera's centre half a view inside the level, so neither edge is
   ever on screen: `minY = floorY + orthographicSize`, `maxY = ceilingY - orthographicSize`. For `Tall_01` that's
-  `[0, 23.28]`.
-- **If `maxY < minY`** — a level shorter than one screen, i.e. every Classic level — both collapse to the
-  midpoint and the camera simply doesn't move. That degenerate case is what lets the same component sit in a
-  Classic scene harmlessly.
+  `[0, 24.93]`. The clamp is recomputed from the camera's *current* size every frame, so a fit-to-width
+  re-zoom (rotation, resize) can't leave it stale.
+- **If `maxY <= minY`** — a level no taller than the view, i.e. every Classic level — both collapse to the
+  midpoint and the camera simply doesn't move. That degenerate case is what lets one scene serve both modes.
 - `LateUpdate` `SmoothDamp`s toward the clamped target on **`Time.unscaledDeltaTime`**, because the pause menu
   sets `Time.timeScale = 0` and a glide left half-finished there would lurch the moment the player resumed. Same
   reasoning as `AudioManager`'s music fades.

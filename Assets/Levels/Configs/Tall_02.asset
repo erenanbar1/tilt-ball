@@ -19,6 +19,4 @@ MonoBehaviour:
   ballStartPosition: {x: 0, y: 0, z: 0}
   winningHolePosition: {x: 0, y: 0, z: 0}
   timeLimit: 0
-  climbHeight: 34
-  levelFloorY: -7
-  ceilingPadding: 0.75
+  levelLength: 42

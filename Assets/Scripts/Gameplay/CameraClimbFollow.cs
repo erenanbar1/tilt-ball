@@ -1,9 +1,9 @@
 using UnityEngine;
 
 // Scrolls the gameplay camera vertically so a tall level's climb stays in frame.
-// Classic levels are shorter than one screenful, and the clamp collapses their
-// travel range to a single point, so this component can sit on a Classic
-// camera without moving it at all.
+// Classic levels are exactly one screenful, and the clamp collapses their
+// travel range to a single point, so the same camera holds still on them
+// without any special-casing.
 [RequireComponent(typeof(Camera))]
 public class CameraClimbFollow : MonoBehaviour
 {
