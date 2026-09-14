@@ -9,8 +9,8 @@ Engine: Unity `6000.3.12f1`, Universal Render Pipeline, new Input System, 2D phy
 Third-party: [PrimeTween](https://github.com/KyryloKuzyk/PrimeTween) (via OpenUPM) drives every animation in the game — no `Animator`/coroutine tweening is used.
 
 The game ships **two modes** (§8): *Classic*, where a level fits one phone screen, and *Tall*, where the climb runs
-several screens and the camera scrolls to follow it. They share every screen, script and mechanic below and differ
-only in which gameplay scene loads, which level list is read, and which unlock track gates it. Level content is
+several screens and the camera scrolls to follow it. They share every screen, scene, script and mechanic below and differ
+only in which level list is read and which unlock track gates it. Level content is
 described separately in `level-design.md`.
 
 ## 1. Scene graph and navigation
@@ -61,12 +61,11 @@ back to `GameState.Playing`, which every way of leaving Pause sets) by loading/u
 additively and toggling `Time.timeScale`. `GameManager` itself never touches scenes or timescale — it only holds
 state and fires `OnStateChanged`; `SceneLoader` is still the sole place scene/timescale mechanics happen.
 
-Only the four main scenes are self-contained in the classic sense: each has its own `Main Camera`, `EventSystem`,
+Only the three main scenes are self-contained in the classic sense: each has its own `Main Camera`, `EventSystem`,
 `Canvas`, and one small controller script that wires up that scene's buttons.
 
-Which gameplay scene loads is decided in one place — `SceneLoader.ActiveGameplayScene()`, consulted by both
-`LoadGameplay()` and `RetryLevel()`. Because every navigation path already went through those two methods, picking
-a level, Next Level and Retry all follow the current mode without any of them knowing a second mode exists. The
+Picking a level, Next Level and Retry all go through `LoadGameplay()`/`RetryLevel()`, which always load the one
+Gameplay scene; the mode only decides which list the next level comes from. The
 pause menu no longer has a restart/retry button of its own (see [Cleanup history](#cleanup-history)) — its only
 two buttons are Resume and Main Menu.
 
@@ -78,7 +77,7 @@ two buttons are Resume and Main Menu.
 | Script | Responsibility |
 |---|---|
 | `AudioManager` | One looping `AudioSource` for music, one one-shot source for SFX, so SFX never interrupts music. Also owns menu-click sound, win/lose ducking (below), and the persisted music/SFX on-off toggles (§6). |
-| `SceneLoader` | Owns all scene transitions (§1), the pause/win/lose overlays, and the mode→gameplay-scene choice. |
+| `SceneLoader` | Owns all scene transitions (§1) and the pause/win/lose overlays. |
 | `GameManager` | Tracks `CurrentState` (`Playing/Win/Lose/Pause`), `CurrentMode` (`Classic/Tall`), the selected `currentLevel`, both level lists (`allLevels`/`tallLevels`), and fires `OnStateChanged`. Holds no obstacle/geometry knowledge, and never touches scenes or `Time.timeScale` itself — purely run state. |
 | `SaveManager` | Persists one unlock index **per mode** via `PlayerPrefs`; each monotonically increasing. |
 | `BootstrapRunner` | The handoff: in `Start()` (guaranteed to run after every other object's `Awake`) calls `SceneLoader.Instance.GoToMainMenu()`. |
@@ -115,11 +114,12 @@ now-removed `LevelLoader`, no longer applies — see [Cleanup history](#cleanup-
 
 ## 3. Level system
 
-`LevelConfig` (`ScriptableObject`, `Assets/Levels/Configs/`) holds `levelId`, `levelIndex`, and an
-`obstaclesPrefab`, a `backgroundSprite`, and `levelLength` — the one number that decides how tall the level plays (§8).
-`ballStartPosition`, `winningHolePosition` and `timeLimit` are placeholder fields — not read by anything, since
-ball/hole placement and timing stay scene-authored in both modes. Twenty configs exist — `Level_01`…`Level_18`
-for Classic, `Tall_01`/`Tall_02` for Tall.
+`LevelConfig` (`ScriptableObject`, `Assets/Levels/Configs/`) holds `levelId`, `levelIndex`, a `layoutPrefab` —
+the winning hole plus every obstacle, in absolute world coordinates — a `backgroundSprite`, and `levelLength`,
+the one number that decides how tall the level plays (§8). Together those three *are* the level; the Gameplay
+scene contributes only what every level shares (the stick rig and the background). `ballStartPosition` and
+`timeLimit` are placeholder fields — not read by anything. Twenty configs exist — `Level_01`…`Level_18` for
+Classic, `Tall_01`/`Tall_02` for Tall.
 
 `levelLength` defaults to `0`, which means *one screenful — the scene exactly as authored*. That's what makes every
 pre-existing Classic config work untouched: they simply don't carry the field, so they read as 0 and the geometry
@@ -134,14 +134,14 @@ explicitly calls `GameManager.SetMode(GameMode.Classic)` (LevelSelect no longer 
 it loaded — see §5), and calls `SceneLoader.LoadGameplay()`. **Tall doesn't appear on the path at all** — see §5's
 "side quest" button, which sets `GameMode.Tall` and jumps straight into whichever Tall level `SaveManager` has
 already unlocked, with no per-level picker of its own. In whichever gameplay scene loads, **`LevelController`**
-reads `GameManager.currentLevel` in `Awake`, applies the climb geometry, then instantiates its `obstaclesPrefab`
-under an `ObstaclesRoot` transform. On win, `WinScreenController` advances to `CurrentLevels[index + 1]` (looping
+reads `GameManager.currentLevel` in `Awake`, applies the climb geometry, then instantiates its `layoutPrefab`
+under a `LayoutRoot` transform. On win, `WinScreenController` advances to `CurrentLevels[index + 1]` (looping
 back to level 0 at the end) and calls `SaveManager.UnlockLevel(nextIndex)` before loading gameplay again — so
 finishing a Tall level leads to the next Tall level, not back into Classic.
 
-Obstacle prefabs live in `Assets/Levels/ObstaclePrefabs/` (`Level_02_Obstacles.prefab` … `Level_18_Obstacles.prefab`,
-plus `Tall_01_Obstacles.prefab`/`Tall_02_Obstacles.prefab`); Level 1 has none, matching the `obstaclesPrefab == null`
-early-out in `LevelController`. Levels 2–10 and Tall 01 are built from lose holes only; 11–18 and Tall 02 use the
+Layout prefabs live in `Assets/Levels/ObstaclePrefabs/` (`Level_01_Obstacles.prefab` … `Level_18_Obstacles.prefab`,
+plus `Tall_01_Obstacles.prefab`/`Tall_02_Obstacles.prefab`). Every one contains a nested `WinningHole` instance;
+Level 1's contains nothing else. Levels 2–10 and Tall 01 are otherwise built from lose holes only; 11–18 and Tall 02 use the
 obstacle/booster set described in §4a and, from a design standpoint, in `level-design.md`.
 
 ## 4. Gameplay mechanics
@@ -406,9 +406,10 @@ changed to support this; they were already written in world space with no notion
 through LevelSelect's side-quest button rather than a level list of its own — see §5.
 
 There is no separate Tall scene. `Gameplay.unity` is authored as exactly **one screenful** —
-`ScreenFitProfile.designLength` (17.07 world units) tall, centred on the `Level` root — and always carries
-`CameraClimbFollow` on its `Main Camera` with `LevelController`'s geometry references wired. A level is Classic or
-Tall purely by its `LevelConfig.levelLength`.
+`ScreenFitProfile.designLength` (17.07 world units) tall, centred on the `Level` root — holding only the stick
+rig and the background, and always carries `CameraClimbFollow` on its `Main Camera` with `LevelController`'s
+geometry references wired. A level is Classic or Tall purely by its `LevelConfig.levelLength`; its hole and
+obstacles arrive with its `layoutPrefab`.
 
 ### Stretching the scene to the level
 
@@ -417,17 +418,18 @@ Tall purely by its `LevelConfig.levelLength`.
 1. `length = max(config.levelLength, profile.designLength)`; `extra = length - designLength`. A Classic config
    (`levelLength 0`) gives `extra 0`.
 2. Floor is the bottom of the authored screenful (`-8.54`); ceiling is `floor + length`.
-3. If `extra > 0`: adds `extra` to `StickController.maxOffset`, and lifts the `Pulleys` group and the
-   `WinningHole` by the same `extra`.
+3. If `extra > 0`: adds `extra` to `StickController.maxOffset`, and lifts the `Pulleys` group by the same
+   `extra`. The winning hole is not the scene's to move — it's inside the layout prefab, at whatever absolute
+   position the designer gave it.
 4. Hands `floor`/`ceiling` to `CameraClimbFollow` — always, Classic included — and, from `Start`, to
    `LevelBackground.Fit` so the level panel covers the whole climb.
 
-Step 3 is the piece worth understanding. Rather than giving each object a per-level coordinate, everything that
-belongs at the top of the climb is shifted by however much the top moved, so the rig keeps whatever proportions
-the scene was authored with at any length. Authored, the stick spawns at `y = -4.47` and climbs 10.5 to a summit
-of `6.03`, with the pulleys at `4.50` and the hole at `4.00` just beneath it. `Tall_01` asks for `levelLength 42`,
-so `extra = 24.93` and those land at `29.43` and `28.93` — still just beneath the new summit of `30.96`, with the
-same headroom to the ceiling (`33.46`) that a Classic level has.
+Step 3 is the piece worth understanding. Rather than giving the rig a per-level coordinate, what belongs at the
+top of the climb is shifted by however much the top moved, so the rig keeps whatever proportions the scene was
+authored with at any length — the pulleys sit a fixed distance below the ceiling whatever `levelLength` says.
+Authored, the stick spawns at `y = -4.47` and climbs 10.5 to a summit of `6.03`. `Tall_01` asks for
+`levelLength 42`, so `extra = 24.93`, the summit becomes `30.96` and the ceiling `33.46`; its layout prefab puts
+the hole at `28.93`, just beneath that summit — the same relationship a Classic layout has with its hole at `4.00`.
 
 **Only `maxOffset` is ever written on the stick.** It's re-read every `FixedUpdate`, so undefined `Awake` order
 between GameObjects can't bite. The stick's position and `minOffset` are captured in `StickController.Awake`
@@ -457,6 +459,35 @@ Because `minY` works out to `0` for `Tall_01` — the same place Classic's camer
 frame identical to Classic's and only starts scrolling once the player has climbed above it. At the other end the
 camera parks at `maxY` while the stick rises through the upper part of the frame, so the last screenful plays
 exactly like a Classic level: arriving at the summit.
+
+## 9. Designing a level
+
+A level is two assets — `<name>_Obstacles.prefab` (the layout: hole + obstacles) and `<name>.asset` — plus an
+entry in `GameManager`'s list. The Gameplay scene is never edited for a level; a *copy* of it is the workbench.
+
+1. **Tools > Tilt Ball > New Level Design Scene** copies `Gameplay.unity` into `Assets/Levels/Designs/`, adds a
+   `LevelDesignPreview` next to `LevelController` on the `Level` root, and drops a `WinningHole` under
+   `Level/LayoutRoot` at the Classic spot (`y = 4`) to start from. Design scenes are not in Build Settings and
+   `SceneLoader` only ever loads the scene named `Gameplay`, so they can't ship by accident.
+2. Set **Level Length** on the preview. In Edit mode it applies the same stretch `LevelController` applies at
+   runtime — pulleys and background lifted by the surplus over one screenful — and draws the level box, the
+   stick's summit and the ceiling as gizmos, so the hole and obstacles are placed against the geometry the level
+   will actually have. The summit line is the cue for where the hole belongs. A length at or below one
+   screenful (17.07) is a Classic level and the label says so.
+3. Move the hole and drag obstacle prefabs (`Assets/Prefabs/LoseHole_N`, `Assets/Prefabs/Obstacles/*`) under
+   `Level/LayoutRoot`. Press **Play** to try it: the preview restores the authored layout on `ExitingEditMode`,
+   `LevelController` reads the length from the preview when there's no `GameManager`, and the level runs
+   through the normal code path at its designed length. Leaving Play re-applies the preview.
+4. **Tools > Tilt Ball > Export Level Assets** saves `LayoutRoot` as
+   `Assets/Levels/ObstaclePrefabs/<name>_Obstacles.prefab` (hole and obstacles stay nested prefab instances) and
+   writes `Assets/Levels/Configs/<name>.asset` with the matching `levelLength` and `layoutPrefab`. It warns if
+   there's no hole in the layout. Re-exporting the same name overwrites both after a confirmation.
+5. Add the config to `allLevels` or `tallLevels` on `GameManager` in `Bootstrap.unity`. Array order is level
+   order (§3); append rather than insert, or existing saves' unlock indices shift.
+
+The preview is reversible — the applied displacement is serialized in `appliedExtra`, so a reopened scene knows
+its objects are already lifted, and Level Length `0` puts everything back. Set it to 0 before removing the
+component. It must never be added to the shipping Gameplay scene.
 
 ## Cleanup history
 

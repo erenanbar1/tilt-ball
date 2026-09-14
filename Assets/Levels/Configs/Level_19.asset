@@ -10,12 +10,13 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 619757e00b9d242488196de7cb6db28e, type: 3}
-  m_Name: Level_01
+  m_Name: Level_19
   m_EditorClassIdentifier: Assembly-CSharp::LevelConfig
-  levelId: Level_01
+  levelId: 
   levelIndex: 0
-  layoutPrefab: {fileID: 1068039195756922552, guid: 3c759024343727044a2884930c65c152, type: 3}
-  backgroundSprite: {fileID: 0}
+  obstaclesPrefab: {fileID: 5138398972672725969, guid: 452eee8a18d9af346864eea4b4683513, type: 3}
+  backgroundSprite: {fileID: 21300000, guid: 0eff03131e0d445aba64c6275a3f4518, type: 3}
   ballStartPosition: {x: 0, y: 0, z: 0}
+  winningHolePosition: {x: 0, y: 0, z: 0}
   timeLimit: 0
-  levelLength: 0
+  levelLength: 10

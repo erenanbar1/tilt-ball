@@ -40,10 +40,15 @@ public class LevelBackground : MonoBehaviour
         Vector2 spriteSize = sr.sprite.bounds.size;
         if (spriteSize.x <= 0f || spriteSize.y <= 0f) return;
 
-        transform.localScale = new Vector3(profile.designWidth / spriteSize.x, (topY - bottomY) / spriteSize.y, 1f);
-
+        var scale = new Vector3(profile.designWidth / spriteSize.x, (topY - bottomY) / spriteSize.y, 1f);
         Vector3 pos = transform.position;
         pos.y = (bottomY + topY) * 0.5f;
+
+        // Already there: skip the writes, so an Edit-mode caller polling every
+        // frame (LevelDesignPreview) doesn't dirty the scene for nothing.
+        if (transform.localScale == scale && transform.position == pos) return;
+
+        transform.localScale = scale;
         transform.position = pos;
     }
 

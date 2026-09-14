@@ -129,7 +129,7 @@ GameObject:
   m_Component:
   - component: {fileID: 211100575}
   m_Layer: 0
-  m_Name: LayoutRoot
+  m_Name: ObstaclesRoot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -412,6 +412,88 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 689073089}
   m_CullTransparentMesh: 1
+--- !u!1001 &695625712
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 784065064}
+    m_Modifications:
+    - target: {fileID: 66237876108278443, guid: e6a27dd0d3ccfed428b6d02d179fe195, type: 3}
+      propertyPath: stick
+      value: 
+      objectReference: {fileID: 1263038112}
+    - target: {fileID: 1015454226408073246, guid: e6a27dd0d3ccfed428b6d02d179fe195, type: 3}
+      propertyPath: InitialModule.startSizeY.minMaxState
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1015454226408073246, guid: e6a27dd0d3ccfed428b6d02d179fe195, type: 3}
+      propertyPath: InitialModule.startSizeZ.minMaxState
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1015454226408073246, guid: e6a27dd0d3ccfed428b6d02d179fe195, type: 3}
+      propertyPath: InitialModule.startRotationX.minMaxState
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1015454226408073246, guid: e6a27dd0d3ccfed428b6d02d179fe195, type: 3}
+      propertyPath: InitialModule.startRotationY.minMaxState
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 1772131108584081433, guid: e6a27dd0d3ccfed428b6d02d179fe195, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1772131108584081433, guid: e6a27dd0d3ccfed428b6d02d179fe195, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 4
+      objectReference: {fileID: 0}
+    - target: {fileID: 1772131108584081433, guid: e6a27dd0d3ccfed428b6d02d179fe195, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1772131108584081433, guid: e6a27dd0d3ccfed428b6d02d179fe195, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1772131108584081433, guid: e6a27dd0d3ccfed428b6d02d179fe195, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1772131108584081433, guid: e6a27dd0d3ccfed428b6d02d179fe195, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1772131108584081433, guid: e6a27dd0d3ccfed428b6d02d179fe195, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1772131108584081433, guid: e6a27dd0d3ccfed428b6d02d179fe195, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1772131108584081433, guid: e6a27dd0d3ccfed428b6d02d179fe195, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1772131108584081433, guid: e6a27dd0d3ccfed428b6d02d179fe195, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2160236650561926280, guid: e6a27dd0d3ccfed428b6d02d179fe195, type: 3}
+      propertyPath: m_Name
+      value: WinningHole
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: e6a27dd0d3ccfed428b6d02d179fe195, type: 3}
+--- !u!4 &695625713 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1772131108584081433, guid: e6a27dd0d3ccfed428b6d02d179fe195, type: 3}
+  m_PrefabInstance: {fileID: 695625712}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &746109752
 GameObject:
   m_ObjectHideFlags: 0
@@ -472,6 +554,7 @@ GameObject:
   m_Component:
   - component: {fileID: 784065064}
   - component: {fileID: 784065065}
+  - component: {fileID: 784065066}
   m_Layer: 0
   m_Name: Level
   m_TagString: Untagged
@@ -493,6 +576,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8994656542438104361}
+  - {fileID: 695625713}
   - {fileID: 211100575}
   - {fileID: 1518261701}
   m_Father: {fileID: 0}
@@ -510,11 +594,28 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelController
   profile: {fileID: 11400000, guid: 9cca19b98097e8338e8b4c3b3883edb7, type: 2}
-  layoutRoot: {fileID: 211100575}
+  obstaclesRoot: {fileID: 211100575}
   background: {fileID: 1518261702}
   stick: {fileID: 1263038112}
   cameraFollow: {fileID: 268844269}
   pulleys: {fileID: 8994656542438104363}
+  winningHole: {fileID: 695625713}
+  levelOverride: {fileID: 0}
+  appliedExtra: 0
+--- !u!114 &784065066
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 784065062}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cbd4e90d018948448b0415907f095353, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LevelDesigner
+  config: {fileID: 0}
+  mode: 0
 --- !u!850595691 &905227744
 LightingSettings:
   m_ObjectHideFlags: 0
