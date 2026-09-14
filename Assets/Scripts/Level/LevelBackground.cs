@@ -1,55 +1,30 @@
 using UnityEngine;
 
-// The art behind the play area, sized to exactly the level's box: the
+// The art behind the play area, tiled over exactly the level's box: the
 // profile's design width by the level's vertical range. On a wide or tall
-// device it reads as the level's boundary against the camera-following
-// OutOfLevelBackground behind it, instead of both blending into one field.
+// device it reads as the level's boundary against the dimmer surround behind
+// it (see LevelController.surround), instead of both blending into one field.
 //
 // Classic levels are one design-length screenful centred on this object;
-// LevelController stretches Tall levels to their climb range.
+// LevelController stretches longer levels to their climb range.
 [ExecuteAlways]
-[RequireComponent(typeof(SpriteRenderer))]
-public class LevelBackground : MonoBehaviour
+public class LevelBackground : TiledBackground
 {
-    public ScreenFitProfile profile;
-
-    SpriteRenderer sr;
-
     void OnEnable()
     {
-        sr = GetComponent<SpriteRenderer>();
         FitToDesignBox();
     }
 
     void OnValidate()
     {
-        if (sr == null) sr = GetComponent<SpriteRenderer>();
-        FitToDesignBox();
-    }
-
-    public void SetSprite(Sprite sprite)
-    {
-        sr.sprite = sprite;
         FitToDesignBox();
     }
 
     public void Fit(float bottomY, float topY)
     {
-        if (sr == null || sr.sprite == null || profile == null) return;
-
-        Vector2 spriteSize = sr.sprite.bounds.size;
-        if (spriteSize.x <= 0f || spriteSize.y <= 0f) return;
-
-        var scale = new Vector3(profile.designWidth / spriteSize.x, (topY - bottomY) / spriteSize.y, 1f);
-        Vector3 pos = transform.position;
-        pos.y = (bottomY + topY) * 0.5f;
-
-        // Already there: skip the writes, so an Edit-mode caller polling every
-        // frame (LevelDesignPreview) doesn't dirty the scene for nothing.
-        if (transform.localScale == scale && transform.position == pos) return;
-
-        transform.localScale = scale;
-        transform.position = pos;
+        if (profile == null) return;
+        float w = profile.designWidth;
+        Cover(new Rect(transform.position.x - w * 0.5f, bottomY, w, topY - bottomY));
     }
 
     void FitToDesignBox()

@@ -5,7 +5,8 @@ using UnityEngine;
 // holding WIDTH constant when the device is narrower than the design allows
 // (so nothing horizontal is ever cropped). Whichever dimension isn't pinned
 // grows beyond the design size — that surplus space is expected to be filled
-// by world-space background art (see BackgroundFitter), not black bars.
+// by world-space background art (TiledBackground in Gameplay, BackgroundFitter
+// in the menus), not black bars.
 //
 //  - Device aspect > profile designAspect (wide/square screens): FIT TO
 //    LENGTH — orthographicSize is pinned to profile.designLength / 2, so the

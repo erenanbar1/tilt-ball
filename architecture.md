@@ -193,16 +193,19 @@ prefab can be dropped into a new level's obstacle prefab without hand-wiring.
 **Purely cosmetic followers**, none of which write back to gameplay state: `PulleyRotator` (spins a pulley wheel
 to match `StickController`'s current held/speed state), `StringVisual` (`LineRenderer` between two anchor
 transforms), `HoleOutline` (traces a `LineRenderer` around a hole's own collider so its capture boundary is
-visible), `BackgroundFitter` (stretches one shared background sprite to exactly fill whatever camera it's given,
-so `Background.prefab` works unmodified across every level's camera), and `MrBallIdle` (breathing/arm-sway idle
-loop + procedural shadow for the mascot).
+visible), `BackgroundFitter` (menus only: stretches `Background.prefab` to fill the camera it's parented to),
+and `MrBallIdle` (breathing/arm-sway idle loop + procedural shadow for the mascot).
 
-`BackgroundFitter` re-centres on the camera every `LateUpdate`, which in a Tall level means the background tracks
-the scroll and so reads as static during the climb. The pulleys drawing closer and the holes passing by carry the
-sense of ascent instead; if that ever stops being enough, the fix is to disable the component in the tall scene
-and scale one sprite to the whole column. It also re-fits automatically whenever `CameraAspectFit` (below) grows
-a camera's `orthographicSize` on a narrow device, since it reads the camera's current size/aspect live rather than
-caching it once.
+**Gameplay backgrounds are world-space and tiled, and nothing follows the camera.** `TiledBackground` tiles a
+sprite over a world rectangle at one tile per play-area width (`profile.designWidth`), so as the camera climbs
+the art genuinely passes by. Two instances live under `Level`: `LevelBackground` (a subclass) tiles the level
+panel — exactly the level box, `designWidth` × `levelLength` — and `OutOfLevelBackground` is the dimmed *surround*,
+covering everything the camera can ever show beyond the box (`LevelController.SurroundRect`: full view width;
+vertically the level itself, or the view centred on a level shorter than it). Both take the **same sprite**,
+which is set in one place — `LevelConfig.backgroundSprite` — and applied by `LevelController.ApplyBackground`;
+the prefabs' own sprite is only the fallback for a level that sets none. The surround is re-covered if
+`CameraAspectFit` changes the view (rotation, resize). Tiling requires the sprites imported with Mesh Type
+**Full Rect**.
 
 ### 4a. Obstacles and boosters
 
@@ -484,6 +487,14 @@ entry in `GameManager`'s list. The Gameplay scene is never edited for a level; a
    there's no hole in the layout. Re-exporting the same name overwrites both after a confirmation.
 5. Add the config to `allLevels` or `tallLevels` on `GameManager` in `Bootstrap.unity`. Array order is level
    order (§3); append rather than insert, or existing saves' unlock indices shift.
+
+**Editing an existing level:** select its `LevelConfig` and run **Tools > Tilt Ball > Edit Selected Level**. It
+opens (or creates) `Assets/Levels/Designs/<level>.unity` with the level's layout loaded under `LayoutRoot` as
+loose pieces — detached from the level's prefab, each obstacle still its own prefab — and the preview's name,
+length and background set from the config. Edit, then Export under the same name to overwrite. Starting a *new*
+level from an old one's layout is also safe: Export detaches any layout-prefab instance it finds under
+`LayoutRoot`, so the new level never nests (or writes back into) the old one, and warns when more than one
+`WinningHole` ends up in the layout.
 
 The preview is reversible — the applied displacement is serialized in `appliedExtra`, so a reopened scene knows
 its objects are already lifted, and Level Length `0` puts everything back. Set it to 0 before removing the

@@ -37,6 +37,9 @@ public class LevelDesignPreview : MonoBehaviour
     [Min(0f)]
     public float levelLength = 0f;
 
+    [Tooltip("Art for both the level panel and the dimmed surround. Copied into the LevelConfig on export. Empty keeps the prefabs' default art.")]
+    public Sprite backgroundSprite;
+
     [SerializeField, HideInInspector] float appliedExtra;
 
     LevelController controller;
@@ -103,7 +106,17 @@ public class LevelDesignPreview : MonoBehaviour
         SetExtra(extra);
 
         float floor = c.FloorY;
-        if (c.background != null) c.background.Fit(floor, floor + design + extra);
+        float ceiling = floor + design + extra;
+        if (backgroundSprite != null)
+        {
+            if (c.background != null) c.background.SetSprite(backgroundSprite);
+            if (c.surround != null) c.surround.SetSprite(backgroundSprite);
+        }
+        if (c.background != null) c.background.Fit(floor, ceiling);
+        // Sized for the Game view's camera, the same one CameraAspectFit keeps
+        // fitted in Edit mode, so the surround previews what the device shows.
+        var cam = Camera.main;
+        if (c.surround != null && cam != null) c.surround.Cover(c.SurroundRect(floor, ceiling, cam));
     }
 
     // Moves the pulleys from wherever they are now to where a level of the

@@ -18,7 +18,13 @@ public class LevelController : MonoBehaviour
     public ScreenFitProfile profile;
     [FormerlySerializedAs("obstaclesRoot")]
     public Transform layoutRoot;
+    [Header("Background — one sprite, set per level on LevelConfig")]
+    // The panel: tiled over exactly the level box.
     public LevelBackground background;
+    // The same art, dimmed, tiled over everything the camera can see beyond
+    // the box — sides on a wide screen, above/below on a tall phone playing
+    // a Classic level. World-space like the panel; it never follows the camera.
+    public TiledBackground surround;
 
     [Header("Climb geometry")]
     public StickController stick;
@@ -28,6 +34,11 @@ public class LevelController : MonoBehaviour
     float floorY;
     float ceilingY;
     bool hasBounds;
+
+    // The camera view the surround was last sized for; re-covered if it
+    // changes (CameraAspectFit re-zooms on a rotation or window resize).
+    float surroundOrtho = -1f;
+    float surroundAspect = -1f;
 
     // The geometry LevelDesignPreview needs to draw the same picture in Edit
     // mode, kept here so the two can't drift apart.
@@ -54,11 +65,48 @@ public class LevelController : MonoBehaviour
 
     void ApplyBackground()
     {
-        if (background == null) return;
-
         var config = GameManager.Instance != null ? GameManager.Instance.currentLevel : null;
-        if (config != null && config.backgroundSprite != null) background.SetSprite(config.backgroundSprite);
-        if (hasBounds) background.Fit(floorY, ceilingY);
+        var sprite = config != null ? config.backgroundSprite : DesignSceneSprite();
+        if (sprite != null)
+        {
+            if (background != null) background.SetSprite(sprite);
+            if (surround != null) surround.SetSprite(sprite);
+        }
+        if (!hasBounds) return;
+        if (background != null) background.Fit(floorY, ceilingY);
+        CoverSurround();
+    }
+
+    void LateUpdate()
+    {
+        if (!hasBounds || surround == null) return;
+        var cam = Camera.main;
+        if (cam == null) return;
+        if (cam.orthographicSize != surroundOrtho || cam.aspect != surroundAspect) CoverSurround();
+    }
+
+    void CoverSurround()
+    {
+        var cam = Camera.main;
+        if (surround == null || cam == null) return;
+        surroundOrtho = cam.orthographicSize;
+        surroundAspect = cam.aspect;
+        surround.Cover(SurroundRect(floorY, ceilingY, cam));
+    }
+
+    // Everything the camera can ever show for this level, as a world rect:
+    // the full view width (the play area is never wider than the view), and
+    // vertically either the level itself — CameraClimbFollow keeps the view
+    // inside a level taller than the view — or, for a level shorter than the
+    // view, the view centred on the level.
+    public Rect SurroundRect(float floor, float ceiling, Camera cam)
+    {
+        float halfH = cam.orthographicSize;
+        float halfW = halfH * cam.aspect;
+        float centreY = (floor + ceiling) * 0.5f;
+        float bottom = Mathf.Min(floor, centreY - halfH);
+        float top = Mathf.Max(ceiling, centreY + halfH);
+        return new Rect(transform.position.x - halfW, bottom, halfW * 2f, top - bottom);
     }
 
     // Stretches the scene's climb to the length this level asks for.
@@ -111,6 +159,12 @@ public class LevelController : MonoBehaviour
     {
         var preview = GetComponent<LevelDesignPreview>();
         return preview != null ? preview.levelLength : 0f;
+    }
+
+    Sprite DesignSceneSprite()
+    {
+        var preview = GetComponent<LevelDesignPreview>();
+        return preview != null ? preview.backgroundSprite : null;
     }
 
     void SpawnLayout()
