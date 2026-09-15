@@ -12,7 +12,14 @@ public static class PerformanceSettings
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     static void Apply()
     {
+#if UNITY_WEBGL && !UNITY_EDITOR
+        // A fixed targetFrameRate makes the WebGL player tick off setTimeout
+        // instead of requestAnimationFrame, which stutters against the browser's
+        // own refresh. -1 hands the pacing back to the browser.
+        Application.targetFrameRate = -1;
+#else
         Application.targetFrameRate = TargetFrameRate;
+#endif
         QualitySettings.vSyncCount = 0;
         Time.fixedDeltaTime = 1f / TargetFrameRate;
     }
