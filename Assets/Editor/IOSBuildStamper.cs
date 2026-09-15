@@ -21,6 +21,11 @@ using UnityEditor.iOS.Xcode;
 //
 // Player Settings itself is never rewritten with the versioned identifier — only
 // the generated Xcode project is — so the suffix can never stack up across builds.
+//
+// DEVELOPMENT BUILDS ONLY. The App Store needs one stable bundle identifier
+// across versions and the real product name on the home screen, so a release
+// build (Development Build unticked) gets neither the suffix nor the stamped
+// name — just the build-number increment, which App Store Connect wants anyway.
 public class IOSBuildStamper : IPreprocessBuildWithReport, IPostprocessBuildWithReport
 {
     // iOS truncates the label under a home-screen icon at roughly 12 characters,
@@ -49,11 +54,17 @@ public class IOSBuildStamper : IPreprocessBuildWithReport, IPostprocessBuildWith
 #if UNITY_IOS
         if (report.summary.platform != BuildTarget.iOS) return;
 
+        if ((report.summary.options & BuildOptions.Development) == 0)
+        {
+            Debug.Log("[IOSBuildStamper] release build: bundle identifier and display name left as Player Settings has them (" + PlayerSettings.applicationIdentifier + ")");
+            return;
+        }
+
         string projectRoot = report.summary.outputPath;
         StampDisplayName(projectRoot);
         StampBundleIdentifier(projectRoot);
 
-        Debug.Log("[IOSBuildStamper] '" + DisplayName() + "'  id=" + VersionedBundleIdentifier());
+        Debug.Log("[IOSBuildStamper] development build: '" + DisplayName() + "'  id=" + VersionedBundleIdentifier());
 #endif
     }
 

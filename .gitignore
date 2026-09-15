@@ -85,3 +85,6 @@ crashlytics-build.properties
 .DS_Store
 /.vscode
 /.vscode
+
+# Editor screenshots kept outside Assets so Unity does not import them
+/Screenshots/
