@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LevelConfig
   levelId: Level_02
   levelIndex: 1
-  obstaclesPrefab: {fileID: 8605866691846831475, guid: ba54cb3fe03cec74d845e35627d8d570, type: 3}
+  layoutPrefab: {fileID: 8605866691846831475, guid: ba54cb3fe03cec74d845e35627d8d570, type: 3}
+  backgroundSprite: {fileID: 0}
   ballStartPosition: {x: 0, y: 0, z: 0}
-  winningHolePosition: {x: 0, y: 0, z: 0}
   timeLimit: 0
+  levelLength: 0

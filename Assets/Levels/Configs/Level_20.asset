@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 619757e00b9d242488196de7cb6db28e, type: 3}
-  m_Name: Level_17
+  m_Name: Level_20
   m_EditorClassIdentifier: Assembly-CSharp::LevelConfig
-  levelId: Level_17
-  levelIndex: 16
-  layoutPrefab: {fileID: 2841529262867446897, guid: 55cea6ea371d2d04283e5d7eff0c9f08, type: 3}
+  levelId: Level_20
+  levelIndex: 19
+  layoutPrefab: {fileID: 3827950909730168350, guid: 2eb49ac5cedb456459b7f268ec7d52b3, type: 3}
   backgroundSprite: {fileID: 0}
   ballStartPosition: {x: 0, y: 0, z: 0}
   timeLimit: 0
-  levelLength: 47
+  levelLength: 56

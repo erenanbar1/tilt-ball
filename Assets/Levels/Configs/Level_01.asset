@@ -18,4 +18,4 @@ MonoBehaviour:
   backgroundSprite: {fileID: 0}
   ballStartPosition: {x: 0, y: 0, z: 0}
   timeLimit: 0
-  levelLength: 28
+  levelLength: 0
