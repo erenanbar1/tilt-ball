@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 619757e00b9d242488196de7cb6db28e, type: 3}
-  m_Name: Level_01
+  m_Name: level_Bora
   m_EditorClassIdentifier: Assembly-CSharp::LevelConfig
-  levelId: Level_01
+  levelId: level_Bora
   levelIndex: 0
-  layoutPrefab: {fileID: 1068039195756922552, guid: 3c759024343727044a2884930c65c152, type: 3}
-  backgroundSprite: {fileID: 0}
+  layoutPrefab: {fileID: 2433850672895800167, guid: 03fe581539d33b2459e4824d6227b38a, type: 3}
+  backgroundSprite: {fileID: -7613286569492515981, guid: 49ff1ac313179ab42aa7eb818eed1957, type: 3}
   ballStartPosition: {x: 0, y: 0, z: 0}
   timeLimit: 0
   levelLength: 28
