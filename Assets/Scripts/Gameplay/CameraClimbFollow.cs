@@ -62,10 +62,25 @@ public class CameraClimbFollow : MonoBehaviour
 
     float DesiredY()
     {
-        float half = Cam.orthographicSize;
-        float minY = floorY + half;
-        float maxY = ceilingY - half;
-        if (maxY < minY) minY = maxY = (floorY + ceilingY) * 0.5f;
+        TravelRange(out float minY, out float maxY);
         return Mathf.Clamp(target.position.y + followOffsetY, minY, maxY);
+    }
+
+    // World y of the view's top edge when the camera is as high as the clamp
+    // lets it go — the level's ceiling on a level taller than the view, higher
+    // than that when the view is taller than the level. Anything the HUD's top
+    // strip must not cover is measured against this.
+    public float TopmostViewTop()
+    {
+        TravelRange(out _, out float maxY);
+        return maxY + Cam.orthographicSize;
+    }
+
+    void TravelRange(out float minY, out float maxY)
+    {
+        float half = Cam.orthographicSize;
+        minY = floorY + half;
+        maxY = ceilingY - half;
+        if (maxY < minY) minY = maxY = (floorY + ceilingY) * 0.5f;
     }
 }

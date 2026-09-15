@@ -432,6 +432,11 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 2850851892769741298, guid: 1e00b85310b974e21a592e741a5e61ec, type: 3}
   m_PrefabInstance: {fileID: 401821938}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &458856121 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2513395271071290356, guid: 5c477889c632b43579a2a31e965dec90, type: 3}
+  m_PrefabInstance: {fileID: 8994656542438104360}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &530801554
 GameObject:
   m_ObjectHideFlags: 0
@@ -468,7 +473,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 220.00012}
+  m_SizeDelta: {x: 0, y: 381.78833}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &530801557
 MonoBehaviour:
@@ -553,8 +558,8 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1923369616}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.0010230541, y: 0}
-  m_AnchorMax: {x: 0.99897695, y: 1}
+  m_AnchorMin: {x: 0.0001258254, y: 0}
+  m_AnchorMax: {x: 0.9998742, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -1058,8 +1063,8 @@ RectTransform:
   - {fileID: 1923369616}
   m_Father: {fileID: 1441304873}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMin: {x: 0, y: 0.036480688}
+  m_AnchorMax: {x: 1, y: 0.9366953}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -1445,7 +1450,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 2513395271071290356, guid: 5c477889c632b43579a2a31e965dec90, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8994656542438104364}
   m_SourcePrefab: {fileID: 100100000, guid: 5c477889c632b43579a2a31e965dec90, type: 3}
 --- !u!4 &8994656542438104361 stripped
 Transform:
@@ -1462,6 +1470,21 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 5317430419070243665, guid: 5c477889c632b43579a2a31e965dec90, type: 3}
   m_PrefabInstance: {fileID: 8994656542438104360}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &8994656542438104364
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 458856121}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 15cec8011b5d6e54da9be83531534869, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PulleysBelowTopBar
+  topBar: {fileID: 530801556}
+  cameraFollow: {fileID: 268844269}
+  clearance: 0.15
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
